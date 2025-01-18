@@ -6,12 +6,18 @@
 //
 
 import SwiftUI
+import SwiftData
+import UIKit
 
 @main
 struct aba_cameraApp: App {
+    
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainView()
+                .modelContainer(for: [RecordedVideo.self, SceneVideo.self])
         }
     }
 }
