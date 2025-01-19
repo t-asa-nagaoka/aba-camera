@@ -8,6 +8,6 @@
 import Foundation
 
 protocol ExtractPointProtocol {
-    var happendDate: Date { get }
+    var happend: Date { get }
     var subjective: Bool { get }
 }

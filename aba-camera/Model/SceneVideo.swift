@@ -27,7 +27,7 @@ class SceneVideo : VideoProtocol, VideoInfoProtocol, ExtractPointProtocol {
     }
     var title: String
     var memo: String
-    var happendDate: Date
+    var happend: Date
     var subjective: Bool
     var extractedDate: Date
     var parent: RecordedVideo?
@@ -42,7 +42,7 @@ class SceneVideo : VideoProtocol, VideoInfoProtocol, ExtractPointProtocol {
         self.fileType = "mp4"
         self.title = ""
         self.memo = ""
-        self.happendDate = date
+        self.happend = date
         self.subjective = false
         self.extractedDate = date
         self.parent = nil
@@ -116,7 +116,7 @@ class SceneVideo : VideoProtocol, VideoInfoProtocol, ExtractPointProtocol {
         // レコードとして保存する情報を更新
         self.recordedStart = recordedStart
         self.recordedEnd = recordedEnd
-        self.happendDate = extractPoint.happendDate
+        self.happend = extractPoint.happend
         self.subjective = extractPoint.subjective
         self.extractedDate = .init()
         self.parent = parent
@@ -125,12 +125,12 @@ class SceneVideo : VideoProtocol, VideoInfoProtocol, ExtractPointProtocol {
     }
     
     static private func calcRecordedStart(parent: RecordedVideo, extractPoint: ExtractPointProtocol, before: Int) -> Date {
-        let recordedStart: Date = Calendar.current.date(byAdding:.second, value: before > 0 ? -before : -1, to:extractPoint.happendDate)!
+        let recordedStart: Date = Calendar.current.date(byAdding:.second, value: before > 0 ? -before : -1, to:extractPoint.happend)!
         return recordedStart >= parent.recordedStart ? recordedStart : parent.recordedStart
     }
     
     static private func calcRecordedEnd(parent: RecordedVideo, extractPoint: ExtractPointProtocol, after: Int) -> Date {
-        let recordedEnd: Date = Calendar.current.date(byAdding:.second, value: after > 0 ? after : 1, to:extractPoint.happendDate)!
+        let recordedEnd: Date = Calendar.current.date(byAdding:.second, value: after > 0 ? after : 1, to:extractPoint.happend)!
         return recordedEnd <= parent.recordedEnd ? recordedEnd : parent.recordedEnd
     }
     
