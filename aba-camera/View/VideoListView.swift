@@ -85,7 +85,7 @@ struct VideoListView: View {
             // 撮影ボタン
             if (filterMode != .sceneOnly) {
                 Section {
-                    NavigationLink(destination: Text("aaa")){
+                    NavigationLink(destination: CameraView(id: generateId())){
                         HStack {
                             Image(systemName: "camera").bold().imageScale(.large).foregroundStyle(Color.blue)
                             VStack(alignment: .leading) {

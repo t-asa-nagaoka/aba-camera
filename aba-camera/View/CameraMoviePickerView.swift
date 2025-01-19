@@ -8,7 +8,6 @@ struct CameraMoviePickerView: UIViewControllerRepresentable {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("videoHighQuality") var videoHighQuality: Bool = false
     @Binding var videoUrl: URL?
-    @Binding var cancelled: Bool
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
@@ -42,10 +41,11 @@ struct CameraMoviePickerView: UIViewControllerRepresentable {
             }
 
             parent.videoUrl = videoUrl
+            parent.dismiss()
         }
 
         func imagePickerControllerDidCancel(_: UIImagePickerController) {
-            parent.cancelled = true
+            parent.dismiss()
         }
     }
 }
