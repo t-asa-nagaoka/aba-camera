@@ -31,6 +31,10 @@ struct VideoListView: View {
     
     // 画面上部のタイトル
     private var viewTitle: String {
+        if (self.parentId != nil) {
+            return "シーン一覧"
+        }
+        
         switch self.filterMode {
         case .all:
             return "すべて"
@@ -43,16 +47,16 @@ struct VideoListView: View {
     
     // フィルタを適用した動画のリスト
     private var filteredVideos: [Video] {
+        if (self.parentId != nil) {
+            return self.videos.filter { $0.isScene == true && $0.parentId == self.parentId }
+        }
+        
         switch self.filterMode {
         case .all:
             return self.videos
         case .recordedOnly:
             return self.videos.filter { $0.isScene == false }
         case .sceneOnly:
-            if (self.parentId != nil) {
-                return self.videos.filter { $0.isScene == true && $0.parentId == self.parentId }
-            }
-            
             return self.videos.filter { $0.isScene == true }
         }
     }
@@ -72,6 +76,19 @@ struct VideoListView: View {
         self.parentId = nil
         self.deletingVideo = nil
         self.filterMode = .recordedOnly
+        self.showCameraView = false
+        self.showAppSettingsView = false
+        self.showDeleteConfirmAlert = false
+        self.showDeleteAllConfirmAlert = false
+        self.showDeleteFilesFailedAlert = false
+        self.format = .init()
+        self.format.dateFormat = "yyyy/MM/dd HH:mm:ss"
+    }
+    
+    init(parentId: UUID) {
+        self.parentId = parentId
+        self.deletingVideo = nil
+        self.filterMode = .sceneOnly
         self.showCameraView = false
         self.showAppSettingsView = false
         self.showDeleteConfirmAlert = false
@@ -103,7 +120,7 @@ struct VideoListView: View {
             // 動画一覧
             Section {
                 ForEach(sortedVideos) { video in
-                    NavigationLink(destination: Text("aaa")){
+                    NavigationLink(destination: VideoDetailsView(video: video)){
                         VStack(alignment: .leading) {
                             Text(video.title).font(.title3).bold()
                                 .padding(.vertical, 6)
@@ -170,12 +187,14 @@ struct VideoListView: View {
         // ツールバー
         .toolbar{
             // 右上に設定ボタンを表示
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showAppSettingsView = true
-                } label: {
-                    Image(systemName: "gearshape")
-                    Text("設定")
+            if (parentId == nil) {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showAppSettingsView = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                        Text("設定")
+                    }
                 }
             }
             // タイトル部分をメニューボタンにする
