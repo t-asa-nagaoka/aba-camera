@@ -10,37 +10,25 @@ import SwiftData
 import AVFoundation
 
 @Model
-class Video : ObservableObject, ExtractPointProtocol {
-    @Attribute(.unique)
-    var id: UUID
-    @Published
+class Video : ExtractPointProtocol {
+    @Attribute(.unique) var id: UUID
+    
     var created: Date
-    @Published
     var recordedStart: Date
-    @Published
     var recordedEnd: Date
-    @Published
-    var fileAttached: Bool
-    @Published
     var fileType: String
-    @Transient
-    var fileUrl: URL {
+    var title: String
+    var memo: String
+    var isScene: Bool
+    var parentId: UUID?
+    var happend: Date
+    var subjective: Bool
+    
+    @Transient var fileUrl: URL {
         get {
             return Video.generateFileUrl(id: self.id, fileType: self.fileType)
         }
     }
-    @Published
-    var title: String
-    @Published
-    var memo: String
-    @Published
-    var isScene: Bool
-    @Published
-    var parentId: UUID?
-    @Published
-    var happend: Date
-    @Published
-    var subjective: Bool
     
     init() {
         let date: Date = .init()
@@ -49,7 +37,6 @@ class Video : ObservableObject, ExtractPointProtocol {
         self.created = date
         self.recordedStart = date
         self.recordedEnd = date
-        self.fileAttached = false
         self.fileType = "mp4"
         self.title = ""
         self.memo = ""
@@ -66,7 +53,6 @@ class Video : ObservableObject, ExtractPointProtocol {
         self.created = date
         self.recordedStart = date
         self.recordedEnd = date
-        self.fileAttached = false
         self.fileType = "mp4"
         self.title = ""
         self.memo = ""
@@ -83,7 +69,6 @@ class Video : ObservableObject, ExtractPointProtocol {
         self.created = date
         self.recordedStart = recordedStart
         self.recordedEnd = recordedEnd
-        self.fileAttached = true
         self.fileType = fileType
         self.title = ""
         self.memo = ""
@@ -98,7 +83,6 @@ class Video : ObservableObject, ExtractPointProtocol {
         self.created = .init()
         self.recordedStart = recordedStart
         self.recordedEnd = recordedEnd
-        self.fileAttached = true
         self.fileType = fileType
         self.title = ""
         self.memo = ""
