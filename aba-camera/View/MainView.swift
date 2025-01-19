@@ -12,7 +12,7 @@ struct MainView: View {
     
     var body: some View {
         NavigationStack{
-            RecordedVideoListView()
+            VideoListView()
         }.onAppear{
             // アプリ起動時にすべての一時ファイルを削除
             _ = FileHelper.deleteTemporaryFiles()
@@ -22,5 +22,5 @@ struct MainView: View {
 
 #Preview {
     MainView()
-        .modelContainer(for: [RecordedVideo.self, SceneVideo.self])
+        .modelContainer(for: [Video.self])
 }

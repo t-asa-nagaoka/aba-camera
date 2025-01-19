@@ -17,7 +17,7 @@ struct aba_cameraApp: App {
     var body: some Scene {
         WindowGroup {
             MainView()
-                .modelContainer(for: [RecordedVideo.self, SceneVideo.self])
+                .modelContainer(for: [Video.self])
         }
     }
 }
