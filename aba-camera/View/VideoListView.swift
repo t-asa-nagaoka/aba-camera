@@ -206,6 +206,7 @@ struct VideoListView: View {
         video.isScene = isScene
         video.parentId = self.parentId
         self.context.insert(video)
+        try! self.context.save()
     }
     #endif
     

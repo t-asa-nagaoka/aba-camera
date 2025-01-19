@@ -78,6 +78,7 @@ struct CameraView: View {
             
             // レコード追加
             self.context.insert(video)
+            try! self.context.save()
         }
     }
 }
