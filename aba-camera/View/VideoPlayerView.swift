@@ -16,9 +16,7 @@ struct VideoPlayerView: View {
     private let videoUrl: URL?
     
     private var exists: Bool {
-        get {
-            return videoUrl != nil && FileManager.default.fileExists(atPath: videoUrl!.path)
-        }
+        return videoUrl != nil && FileManager.default.fileExists(atPath: videoUrl!.path)
     }
     
     init(videoUrl: URL?) {
@@ -27,46 +25,39 @@ struct VideoPlayerView: View {
     }
     
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea(edges: [.all])
-            if (player != nil) {
-                VStack {
-                    HStack {
-                        Spacer()
-
-                        Button {
-                            dismiss()
-                        } label: {
-                            Image(systemName: "xmark").foregroundStyle(Color.white)
-                        }.padding(.all, 9)
-
-                    }
-                    VideoPlayer(player: player!)
-                }.padding(.bottom, 7)
-            } else if (exists) {
-                VStack {
-                    Text("しばらくお待ちください").foregroundStyle(Color.white).font(.title3).padding(.vertical,12)
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Text("前の画面に戻る").font(.title3).bold().padding(.vertical,12)
-                    }
+        if (exists) {
+            ZStack {
+                Color.black.ignoresSafeArea(edges: [.all])
+                if (player != nil) {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            
+                            Button {
+                                dismiss()
+                            } label: {
+                                Image(systemName: "xmark").foregroundStyle(Color.white)
+                            }.padding(.all, 9)
+                            
+                        }
+                        VideoPlayer(player: player!)
+                    }.padding(.bottom, 7)
                 }
-                .onAppear {
-                    player = AVPlayer(url: videoUrl!)
-                }
-            } else {
-                VStack {
-                    Text("動画ファイルが見つかりません").foregroundStyle(Color.white).font(.title3).padding(.vertical,12)
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Text("前の画面に戻る").font(.title3).bold().padding(.vertical,12)
-                    }
+            }
+            .onAppear {
+                player = AVPlayer(url: videoUrl!)
+            }
+            .statusBarHidden()
+        } else {
+            VStack {
+                Text("動画ファイルが見つかりません").font(.title3).padding(.vertical,12)
+                Button(action: {
+                    dismiss()
+                }) {
+                    Text("前の画面に戻る").font(.title3).bold().padding(.vertical,12)
                 }
             }
         }
-        .statusBarHidden()
     }
 }
 
