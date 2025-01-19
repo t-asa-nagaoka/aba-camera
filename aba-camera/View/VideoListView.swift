@@ -102,8 +102,11 @@ struct VideoListView: View {
                     NavigationLink(destination: Text("aaa")){
                         VStack(alignment: .leading) {
                             Text(video.title).font(.title3).bold()
-                                .padding(.vertical, 4)
-                            Text(format.string(from: video.recordedStart)).foregroundStyle(Color.secondary)
+                                .padding(.vertical, 6)
+                            if(filterMode == .all) {
+                                Text(video.isScene ? "行動シーン" : "撮影動画").font(.subheadline).foregroundStyle(Color.blue).bold().padding(.bottom, 2)
+                            }
+                            Text(format.string(from: video.recordedStart)).font(.subheadline).foregroundStyle(Color.secondary).bold()
                         }
                     }.swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button {
