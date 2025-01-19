@@ -94,10 +94,8 @@ class Video : ExtractPointProtocol {
     
     static func create(id: UUID, source: URL) async -> Video? {
         // 動画ソースをアプリのDocumentフォルダにコピー
-        let dir: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let fileType: String = source.pathExtension
-        let fileName: String = "recorded-" + id.uuidString + "." + fileType
-        let url: URL = dir.appendingPathComponent(fileName)
+        let url: URL = Video.generateFileUrl(id: id, fileType: fileType)
         
         do {
             try FileManager.default.copyItem(at: source, to: url)
