@@ -21,6 +21,7 @@ struct VideoListView: View {
     @Query private var videos: [Video]
     @State private var deletingVideo: Video?
     @State private var filterMode: VideoListFilterMode
+    @State private var showCameraView: Bool
     @State private var showAppSettingsView: Bool
     @State private var showDeleteConfirmAlert: Bool
     @State private var showDeleteAllConfirmAlert: Bool
@@ -71,6 +72,7 @@ struct VideoListView: View {
         self.parentId = nil
         self.deletingVideo = nil
         self.filterMode = .recordedOnly
+        self.showCameraView = false
         self.showAppSettingsView = false
         self.showDeleteConfirmAlert = false
         self.showDeleteAllConfirmAlert = false
@@ -85,7 +87,9 @@ struct VideoListView: View {
             // 撮影ボタン
             if (filterMode != .sceneOnly) {
                 Section {
-                    NavigationLink(destination: CameraView(id: generateId())){
+                    Button {
+                        showCameraView = true
+                    } label: {
                         HStack {
                             Image(systemName: "camera").bold().imageScale(.large).foregroundStyle(Color.blue)
                             VStack(alignment: .leading) {
@@ -188,6 +192,10 @@ struct VideoListView: View {
                     filterMode = .sceneOnly
                 }
             }
+        }
+        // カメラ画面への遷移
+        .fullScreenCover(isPresented: $showCameraView) {
+            CameraView(id: generateId())
         }
         // 設定画面への遷移
         .sheet(isPresented: $showAppSettingsView) {

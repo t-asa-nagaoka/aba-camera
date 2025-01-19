@@ -15,32 +15,14 @@ struct CameraView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) var dismiss
     @State private var videoUrl: URL?
-    @State private var canUseCamera: Bool
-    @State private var showCamera: Bool
     
     init(id: UUID) {
         self.id = id
         self.videoUrl = nil
-        self.canUseCamera =  UIImagePickerController.isSourceTypeAvailable(.camera)
-        self.showCamera = false
     }
     
     var body: some View {
-        // 描画するUIのレイアウト
-        Form{
-            Text(canUseCamera ? "しばらくお待ちください" : "カメラを起動できませんでした")
-        }
-        // 描画直後の処理
-        .onAppear{
-            if (canUseCamera) {
-                // 前の画面からの遷移アニメーションが完全に止まってからカメラに切り替える
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
-                    showCamera = true
-                })
-            }
-        }
-        // カメラUIへの遷移
-        .fullScreenCover(isPresented: $showCamera) {
+        if (UIImagePickerController.isSourceTypeAvailable(.camera)) {
             CameraMoviePickerView(videoUrl: $videoUrl)
             .onAppear {
                 // 画面の向きを縦方向でロック (カメラ部分はロック関係なく自動回転)
@@ -60,10 +42,16 @@ struct CameraView: View {
             }
             .statusBarHidden()
             .ignoresSafeArea(edges: [.all])
+        } else {
+            VStack {
+                Text("カメラを起動できません").font(.title3).padding(.vertical,12)
+                Button(action: {
+                    dismiss()
+                }) {
+                    Text("前の画面に戻る").font(.title3).bold().padding(.vertical,12)
+                }
+            }
         }
-        // 画面上部のタイトル
-        .navigationTitle("新規撮影")
-        .navigationBarTitleDisplayMode(.inline)
     }
     
     // 新しい撮影動画として保存
