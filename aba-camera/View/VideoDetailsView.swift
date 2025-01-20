@@ -9,13 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct VideoDetailsView: View {
+    private let video: Video
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) var dismiss
     @Query private var videos: [Video]
-    @State private var video: Video
     @State private var title: String
     @State private var memo: String
+    @State private var fileUrl: URL
     @State private var showVideoPlayerView: Bool
     @State private var showVideoInfoEditView: Bool
     @State private var showRenameSuccessAlert: Bool
@@ -23,26 +24,28 @@ struct VideoDetailsView: View {
     @State private var showDeleteConfirmAlert: Bool
     @State private var showDeleteFilesFailedAlert: Bool
     
-    private let ids: [UUID]
     private let format: DateFormatter
+    
+    private var fileExists: Bool {
+        return FileManager.default.fileExists(atPath: self.fileUrl.path)
+    }
     
     private var updated: Bool {
         return self.video.title != self.title
         || self.video.memo != self.memo
     }
     
-    // 編集
     init(video: Video) {
         self.video = video
         self.title = video.title
         self.memo = video.memo
+        self.fileUrl = video.fileUrl
         self.showVideoPlayerView = false
         self.showVideoInfoEditView = false
         self.showRenameSuccessAlert = false
         self.showRenameFailedAlert = false
         self.showDeleteConfirmAlert = false
         self.showDeleteFilesFailedAlert = false
-        self.ids = []
         self.format = .init()
         self.format.dateFormat = "yyyy/MM/dd HH:mm:ss"
     }
@@ -108,14 +111,25 @@ struct VideoDetailsView: View {
                 }
             }
             Section {
-                Button("タイトルとメモを編集") {
+                Button {
                     showVideoInfoEditView = true
+                } label: {
+                    Label("タイトルとメモを編集", systemImage:"pencil.line")
                 }
-                Button("ファイル名をタイトルと同一にする") {
-                    rename()
+                if (fileExists) {
+                    Button {
+                        rename()
+                    } label: {
+                        Label("ファイル名をタイトルと同一にする", systemImage: "rectangle.and.pencil.and.ellipsis")
+                    }
+                    ShareLink("この動画を共有", item: fileUrl)
                 }
-                Button("この撮影動画を削除", role: .destructive){
+            }
+            Section {
+                Button(role: .destructive){
                     showDeleteConfirmAlert = true
+                } label: {
+                    Label("この動画を削除", systemImage: "trash").foregroundStyle(Color.red)
                 }
             }
         }
@@ -149,21 +163,22 @@ struct VideoDetailsView: View {
                     Image(systemName: "play")
                     Text("再生")
                 }
+                .disabled(!fileExists)
             }
         }
         // 再生画面への遷移
         .fullScreenCover(isPresented: $showVideoPlayerView) {
-            VideoPlayerView(videoUrl: video.fileUrl)
+            VideoPlayerView(videoUrl: fileUrl)
         }
         // 情報の編集画面への遷移
         .sheet(isPresented: $showVideoInfoEditView) {
             NavigationStack {
                 VideoInfoEditView(video: video, title: $title, memo: $memo)
-                    .onDisappear{
-                        if (updated) {
-                            try! context.save()
-                        }
+                .onDisappear {
+                    if (updated) {
+                        try! context.save()
                     }
+                }
             }
             .interactiveDismissDisabled()
         }
@@ -174,6 +189,7 @@ struct VideoDetailsView: View {
     // ファイル名の変更
     private func rename() {
         if (video.rename(fileName: title)) {
+            self.fileUrl = video.fileUrl
             try! context.save()
             showRenameSuccessAlert = true
         } else {
