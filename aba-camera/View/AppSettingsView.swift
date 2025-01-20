@@ -9,7 +9,6 @@ import SwiftUI
 
 struct AppSettingsView: View {
     
-    @Environment(\.dismiss) var dismiss
     @AppStorage("endpointUrl") var endpointUrl: String = ""
     @AppStorage("videoHighQuality") var videoHighQuality: Bool = false
     @AppStorage("beforeSeconds") var beforeSeconds: Int = 20
@@ -65,17 +64,6 @@ struct AppSettingsView: View {
         .alert("すべての一時ファイルを削除しました。", isPresented: $showDeleteFilesSuccessAlert) {}
         // 一時ファイル削除失敗時のアラート
         .alert("一部またはすべての一時ファイルを削除できませんでした。", isPresented: $showDeleteFilesFailedAlert) {}
-        // ツールバーに完了ボタンを設置
-        .toolbar{
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    dismiss()
-                } label: {
-                    Text("完了").bold()
-                }
-            }
-        }
-        .navigationBarBackButtonHidden()
         .navigationTitle("設定")
         .navigationBarTitleDisplayMode(.inline)
     }

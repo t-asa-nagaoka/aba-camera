@@ -143,18 +143,24 @@ struct VideoListView: View {
             Section {
                 #if DEBUG
                 if (filterMode != .sceneOnly) {
-                    Button("空の撮影動画を追加 (デバッグ用)") {
+                    Button {
                         addEmpty(isScene: false)
+                    } label: {
+                        Label("空の撮影動画を追加 (デバッグ用)", systemImage: "plus")
                     }
                 }
                 if (filterMode != .recordedOnly) {
-                    Button("空の行動シーンを追加 (デバッグ用)") {
+                    Button {
                         addEmpty(isScene: true)
+                    } label: {
+                        Label("空の行動シーンを追加 (デバッグ用)", systemImage: "plus")
                     }
                 }
                 #endif
-                Button("すべての動画を削除", role: .destructive){
+                Button(role: .destructive) {
                     showDeleteAllConfirmAlert = true
+                } label: {
+                    Label("すべての動画を削除", systemImage: "trash").foregroundStyle(Color.red)
                 }
             }
         }
@@ -217,11 +223,8 @@ struct VideoListView: View {
             CameraView(id: generateId())
         }
         // 設定画面への遷移
-        .sheet(isPresented: $showAppSettingsView) {
-            NavigationStack {
-                AppSettingsView()
-            }
-            .interactiveDismissDisabled()
+        .navigationDestination(isPresented: $showAppSettingsView) {
+            AppSettingsView()
         }
         // 画面上部のタイトル
         .navigationTitle(viewTitle)
