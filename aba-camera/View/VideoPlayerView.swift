@@ -9,23 +9,23 @@ import SwiftUI
 import AVKit
 
 struct VideoPlayerView: View {
+    private let videoUrl: URL
     
     @Environment(\.dismiss) private var dismiss
     @State private var player: AVPlayer?
     @State private var playerStarted: Bool
-    private let videoUrl: URL?
     
-    private var exists: Bool {
-        return videoUrl != nil && FileManager.default.fileExists(atPath: videoUrl!.path)
+    private var fileExists: Bool {
+        return FileManager.default.fileExists(atPath: self.videoUrl.path)
     }
     
-    init(videoUrl: URL?) {
+    init(videoUrl: URL) {
         self.videoUrl = videoUrl
-        playerStarted = false
+        self.playerStarted = false
     }
     
     var body: some View {
-        if (exists) {
+        if (fileExists) {
             ZStack {
                 Color.black.ignoresSafeArea(edges: [.all])
                 if (player != nil) {
@@ -45,7 +45,7 @@ struct VideoPlayerView: View {
                 }
             }
             .onAppear {
-                player = AVPlayer(url: videoUrl!)
+                player = AVPlayer(url: videoUrl)
             }
             .statusBarHidden()
         } else {
@@ -59,8 +59,13 @@ struct VideoPlayerView: View {
             }
         }
     }
+    
+    static func generatePreviewUrl () -> URL {
+        let dir: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return dir.appendingPathComponent("xxxx.mp4")
+    }
 }
 
 #Preview {
-    VideoPlayerView(videoUrl: nil)
+    VideoPlayerView(videoUrl: VideoPlayerView.generatePreviewUrl())
 }
