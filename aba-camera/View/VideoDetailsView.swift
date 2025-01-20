@@ -12,6 +12,7 @@ struct VideoDetailsView: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) var dismiss
+    @Query private var videos: [Video]
     @State private var video: Video
     @State private var title: String
     @State private var memo: String
@@ -60,6 +61,11 @@ struct VideoDetailsView: View {
             #if DEBUG
             Section (header: Text("動画ID (デバッグ用)").font(.body)) {
                 Text(video.id.uuidString)
+            }
+            if (video.parentId != nil) {
+                Section (header: Text("親動画ID (デバッグ用)").font(.body)) {
+                    Text(video.parentId!.uuidString)
+                }
             }
             #endif
             Section{
@@ -177,6 +183,8 @@ struct VideoDetailsView: View {
     
     // 撮影動画の削除
     private func delete() {
+        // 関連付けの解除
+        detachRelations()
         // 動画ファイルの削除
         self.showDeleteFilesFailedAlert =  !FileHelper.deleteFiles(urls: [self.video.fileUrl])
         // レコードの削除
@@ -186,6 +194,16 @@ struct VideoDetailsView: View {
         if (!self.showDeleteFilesFailedAlert) {
             dismiss()
         }
+    }
+    
+    // 撮影動画→行動シーンの関連付けの解除
+    private func detachRelations() {
+        for video in self.videos {
+            if (video.parentId == self.video.id) {
+                video.parentId = nil
+            }
+        }
+        try! self.context.save()
     }
 }
 

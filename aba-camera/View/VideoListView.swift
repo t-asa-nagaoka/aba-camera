@@ -251,16 +251,21 @@ struct VideoListView: View {
 
     // 動画の削除
     private func delete() {
+        // 関連付けの解除
+        detachRelations(deletingVideos: [self.deletingVideo!])
         // 動画ファイルの削除
         self.showDeleteFilesFailedAlert =  !FileHelper.deleteFiles(urls: [self.deletingVideo!.fileUrl])
         // レコードの削除
         self.context.delete(self.deletingVideo!)
+        try! self.context.save()
         // 削除指定を解除
         self.deletingVideo = nil
     }
     
     // 動画の全削除
     private func deleteAll() {
+        // 関連付けの解除
+        detachRelations(deletingVideos: self.filteredVideos)
         // 動画ファイルの削除
         if (self.filterMode == .all) {
             self.showDeleteFilesFailedAlert =  !FileHelper.deleteAllFiles()
@@ -268,12 +273,24 @@ struct VideoListView: View {
             let urls: [URL] = self.filteredVideos.map{ $0.fileUrl }
             self.showDeleteConfirmAlert = !FileHelper.deleteFiles(urls: urls)
         }
-        
         // レコードの削除
         for video in self.filteredVideos {
             self.context.delete(video)
         }
+        try! self.context.save()
     }
+    
+    // 撮影動画→行動シーンの関連付けの解除
+    private func detachRelations(deletingVideos: [Video]) {
+        let ids: [UUID] = deletingVideos.map{ $0.id }
+        for video in self.videos {
+            if (video.parentId != nil &&  ids.contains(video.parentId!)) {
+                video.parentId = nil
+            }
+        }
+        try! self.context.save()
+    }
+    
 }
 
 #Preview {
