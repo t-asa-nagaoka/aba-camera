@@ -17,6 +17,8 @@ struct VideoDetailsView: View {
     @State private var memo: String
     @State private var showVideoPlayerView: Bool
     @State private var showVideoInfoEditView: Bool
+    @State private var showRenameSuccessAlert: Bool
+    @State private var showRenameFailedAlert: Bool
     @State private var showDeleteConfirmAlert: Bool
     @State private var showDeleteFilesFailedAlert: Bool
     
@@ -35,6 +37,8 @@ struct VideoDetailsView: View {
         self.memo = video.memo
         self.showVideoPlayerView = false
         self.showVideoInfoEditView = false
+        self.showRenameSuccessAlert = false
+        self.showRenameFailedAlert = false
         self.showDeleteConfirmAlert = false
         self.showDeleteFilesFailedAlert = false
         self.ids = []
@@ -101,11 +105,18 @@ struct VideoDetailsView: View {
                 Button("タイトルとメモを編集") {
                     showVideoInfoEditView = true
                 }
+                Button("ファイル名をタイトルと同一にする") {
+                    rename()
+                }
                 Button("この撮影動画を削除", role: .destructive){
                     showDeleteConfirmAlert = true
                 }
             }
         }
+        // ファイル名変更成功時のアラート
+        .alert("ファイル名を変更しました。", isPresented: $showRenameSuccessAlert) {}
+        // ファイル名変更失敗時のアラート
+        .alert("ファイル名を変更できませんでした。", isPresented: $showRenameFailedAlert) {}
         // 動画削除前の確認アラート
         .alert("動画を削除しますか?", isPresented: $showDeleteConfirmAlert) {
             Button("キャンセル", role: .cancel) {}
@@ -152,6 +163,16 @@ struct VideoDetailsView: View {
         }
         .navigationTitle(video.isScene ? "行動シーン" : "撮影動画")
         .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    // ファイル名の変更
+    private func rename() {
+        if (video.rename(fileName: title)) {
+            try! context.save()
+            showRenameSuccessAlert = true
+        } else {
+            showRenameFailedAlert = true
+        }
     }
     
     // 撮影動画の削除

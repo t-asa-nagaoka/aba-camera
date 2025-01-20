@@ -16,6 +16,7 @@ class Video : ExtractPointProtocol {
     var created: Date
     var recordedStart: Date
     var recordedEnd: Date
+    var fileName: String
     var fileType: String
     var title: String
     var memo: String
@@ -25,9 +26,11 @@ class Video : ExtractPointProtocol {
     var subjective: Bool
     
     @Transient var fileUrl: URL {
-        get {
-            return Video.generateFileUrl(id: self.id, fileType: self.fileType)
+        if (self.fileName != "") {
+            return Video.generateFileUrl(fileName: self.fileName, fileType: self.fileType)
         }
+        
+        return Video.generateFileUrl(id: self.id, fileType: self.fileType)
     }
     
     init() {
@@ -37,6 +40,7 @@ class Video : ExtractPointProtocol {
         self.created = date
         self.recordedStart = date
         self.recordedEnd = date
+        self.fileName = ""
         self.fileType = "mp4"
         self.title = ""
         self.memo = ""
@@ -53,6 +57,7 @@ class Video : ExtractPointProtocol {
         self.created = date
         self.recordedStart = date
         self.recordedEnd = date
+        self.fileName = ""
         self.fileType = "mp4"
         self.title = ""
         self.memo = ""
@@ -69,6 +74,7 @@ class Video : ExtractPointProtocol {
         self.created = date
         self.recordedStart = recordedStart
         self.recordedEnd = recordedEnd
+        self.fileName = ""
         self.fileType = fileType
         self.title = ""
         self.memo = ""
@@ -83,6 +89,7 @@ class Video : ExtractPointProtocol {
         self.created = .init()
         self.recordedStart = recordedStart
         self.recordedEnd = recordedEnd
+        self.fileName = ""
         self.fileType = fileType
         self.title = ""
         self.memo = ""
@@ -203,10 +210,46 @@ class Video : ExtractPointProtocol {
         return .init(id: id, recordedStart: recordedStart, recordedEnd: recordedEnd, fileType: fileType, parentId: self.id, extractPoint: extractPoint)
     }
     
+    func rename(fileName: String) -> Bool {
+        let trimmed = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if (!FileHelper.validateFileName(fileName: trimmed)) {
+            return false
+        }
+        
+        return rename(fileName: trimmed, count: 0)
+    }
+    
+    private func rename(fileName: String, count: Int) -> Bool {
+        let withCount: String = count > 0 ? fileName + "-" + String(count) : fileName
+        let url: URL = Video.generateFileUrl(fileName: withCount, fileType: self.fileType)
+        
+        if (FileManager.default.fileExists(atPath: url.path)) {
+            return self.fileUrl == url || rename(fileName: fileName, count: count + 1)
+        }
+        
+        do {
+            try FileManager.default.moveItem(at: self.fileUrl, to: url)
+        } catch {
+            print("-- Video.rename : File Move Error --")
+            print("source: " + self.fileUrl.path)
+            print("moveTo: " + url.path)
+            print(error)
+            return false
+        }
+        
+        self.fileName = withCount
+        return true
+    }
+    
     private static func generateFileUrl(id: UUID, fileType: String) -> URL {
         let dir: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fileName: String = "video-" + id.uuidString + "." + fileType
-        return dir.appendingPathComponent(fileName)
+        let fileName: String = "video-" + id.uuidString
+        return dir.appendingPathComponent(fileName + "." + fileType)
+    }
+    
+    private static func generateFileUrl (fileName : String, fileType: String) -> URL {
+        let dir: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return dir.appendingPathComponent(fileName + "." + fileType)
     }
     
     private func calcRecordedStart(extractPoint: ExtractPointProtocol, before: Int) -> Date {

@@ -231,8 +231,11 @@ struct VideoListView: View {
     // 空データの追加 (デバッグ用)
     #if DEBUG
     private func addEmpty(isScene: Bool) {
+        let format: DateFormatter = .init()
+        format.dateFormat = "yyyy.MM.dd"
+        
         let video: Video = .init(id: generateId())
-        video.title = self.format.string(from: video.recordedStart)
+        video.title = format.string(from: video.recordedStart)
         video.isScene = isScene
         video.parentId = self.parentId
         self.context.insert(video)

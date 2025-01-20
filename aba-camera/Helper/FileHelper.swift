@@ -26,6 +26,26 @@ class FileHelper {
         return true
     }
     
+    static func validateFileName(fileName: String) -> Bool {
+        // 禁止文字 参考: https://www.curict.com/item/6e/6e3772c.html
+
+        let invalid: Bool = fileName.isEmpty
+        || fileName.hasPrefix("video-")
+        || fileName == "."
+        || fileName.contains("\"")
+        || fileName.contains("<")
+        || fileName.contains(">")
+        || fileName.contains("|")
+        || fileName.contains(":")
+        || fileName.contains(";")
+        || fileName.contains("*")
+        || fileName.contains("?")
+        || fileName.contains("¥")
+        || fileName.contains("/")
+        || fileName.contains("\\")
+        return !invalid
+    }
+    
     static func deleteFiles(urls: [URL]) -> Bool {
         let deleteSuccess: Int = urls.count {
             do {
