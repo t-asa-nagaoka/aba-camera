@@ -34,7 +34,7 @@ struct AppSettingsView: View {
             Section (header: Text("撮影設定").font(.body)) {
                 Toggle("高画質撮影", isOn: $videoHighQuality)
             }
-            Section (header: Text("ポイント前後の抽出時間 (秒数)").font(.body)) {
+            Section (header: Text("心拍スイッチ作動前後の抽出時間 (秒)").font(.body)) {
                 HStack {
                     Text("前: ").foregroundStyle(Color.secondary)
                     TextField("秒数を入力", value: $beforeSeconds, format: .number)
