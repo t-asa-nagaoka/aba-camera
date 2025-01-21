@@ -88,7 +88,7 @@ struct VideoDetailsView: View {
             if (video.isScene) {
                 Section (header: Text("心拍スイッチ情報").font(.body)) {
                     HStack {
-                        Text("発生日時")
+                        Text("作動日時")
                         Spacer()
                         Text(format.string(from:video.happend)).foregroundStyle(Color.secondary)
                     }
@@ -137,7 +137,7 @@ struct VideoDetailsView: View {
                     } label: {
                         Label("ファイル名をタイトルと同一にする", systemImage: "rectangle.and.pencil.and.ellipsis")
                     }
-                    ShareLink("この動画を共有", item: fileUrl)
+                    ShareLink("他のアプリに送信・保存", item: fileUrl)
                 }
             }
             Section {
