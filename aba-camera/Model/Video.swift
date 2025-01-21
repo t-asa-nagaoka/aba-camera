@@ -10,7 +10,7 @@ import SwiftData
 import AVFoundation
 
 @Model
-class Video : ExtractPointProtocol {
+class Video : SwitchHistoryProtocol {
     @Attribute(.unique) var id: UUID
     
     var created: Date
@@ -84,7 +84,7 @@ class Video : ExtractPointProtocol {
         self.subjective = false
     }
     
-    init(id: UUID, recordedStart: Date, recordedEnd: Date, fileType: String, parentId: UUID, extractPoint: ExtractPointProtocol) {
+    init(id: UUID, recordedStart: Date, recordedEnd: Date, fileType: String, parentId: UUID, switchHistory: SwitchHistoryProtocol) {
         self.id = id
         self.created = .init()
         self.recordedStart = recordedStart
@@ -95,8 +95,8 @@ class Video : ExtractPointProtocol {
         self.memo = ""
         self.isScene = true
         self.parentId = parentId
-        self.happend = extractPoint.happend
-        self.subjective = extractPoint.subjective
+        self.happend = switchHistory.happend
+        self.subjective = switchHistory.subjective
     }
     
     static func create(id: UUID, source: URL) async -> Video? {
@@ -138,10 +138,10 @@ class Video : ExtractPointProtocol {
         return .init(id:id, recordedStart: recordedStart, recordedEnd: recordedEnd, fileType: fileType)
     }
     
-    func extract(id: UUID, extractPoint: ExtractPointProtocol, before: Int, after: Int) async -> Video? {
+    func extract(id: UUID, switchHistory: SwitchHistoryProtocol, before: Int, after: Int) async -> Video? {
         // 抽出開始・終了点の日時を算出
-        let recordedStart: Date = calcRecordedStart(extractPoint:extractPoint, before: before)
-        let recordedEnd: Date = calcRecordedEnd(extractPoint:extractPoint, after: after)
+        let recordedStart: Date = calcRecordedStart(switchHistory:switchHistory, before: before)
+        let recordedEnd: Date = calcRecordedEnd(switchHistory:switchHistory, after: after)
         
         // 抽出開始・終了点の動画開始時点からの秒数を取得
         let start: TimeInterval = recordedStart.timeIntervalSince(self.recordedStart)
@@ -207,7 +207,7 @@ class Video : ExtractPointProtocol {
         _ = FileHelper.setAsExcludedBackup(url: fileUrl)
         
         // 新しい動画インスタンスを返す
-        return .init(id: id, recordedStart: recordedStart, recordedEnd: recordedEnd, fileType: fileType, parentId: self.id, extractPoint: extractPoint)
+        return .init(id: id, recordedStart: recordedStart, recordedEnd: recordedEnd, fileType: fileType, parentId: self.id, switchHistory: switchHistory)
     }
     
     func rename(fileName: String) -> Bool {
@@ -252,13 +252,13 @@ class Video : ExtractPointProtocol {
         return dir.appendingPathComponent(fileName + "." + fileType)
     }
     
-    private func calcRecordedStart(extractPoint: ExtractPointProtocol, before: Int) -> Date {
-        let recordedStart: Date = Calendar.current.date(byAdding:.second, value: before > 0 ? -before : -1, to:extractPoint.happend)!
+    private func calcRecordedStart(switchHistory: SwitchHistoryProtocol, before: Int) -> Date {
+        let recordedStart: Date = Calendar.current.date(byAdding:.second, value: before > 0 ? -before : -1, to:switchHistory.happend)!
         return recordedStart >= self.recordedStart ? recordedStart : self.recordedStart
     }
     
-    private func calcRecordedEnd(extractPoint: ExtractPointProtocol, after: Int) -> Date {
-        let recordedEnd: Date = Calendar.current.date(byAdding:.second, value: after > 0 ? after : 1, to:extractPoint.happend)!
+    private func calcRecordedEnd(switchHistory: SwitchHistoryProtocol, after: Int) -> Date {
+        let recordedEnd: Date = Calendar.current.date(byAdding:.second, value: after > 0 ? after : 1, to:switchHistory.happend)!
         return recordedEnd <= self.recordedEnd ? recordedEnd : self.recordedEnd
     }
 }
