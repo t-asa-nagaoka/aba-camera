@@ -17,6 +17,7 @@ struct VideoDetailsView: View {
     @State private var title: String
     @State private var memo: String
     @State private var fileUrl: URL
+    @State private var showVideoExtractView: Bool
     @State private var showVideoPlayerView: Bool
     @State private var showVideoInfoEditView: Bool
     @State private var showRenameSuccessAlert: Bool
@@ -40,6 +41,7 @@ struct VideoDetailsView: View {
         self.title = video.title
         self.memo = video.memo
         self.fileUrl = video.fileUrl
+        self.showVideoExtractView = false
         self.showVideoPlayerView = false
         self.showVideoInfoEditView = false
         self.showRenameSuccessAlert = false
@@ -100,6 +102,19 @@ struct VideoDetailsView: View {
                 Section {
                     NavigationLink(destination: VideoListView(parentId: video.id)) {
                         Text("行動シーン")
+                    }
+                }
+                if (fileExists) {
+                    Section {
+                        Button {
+                            showVideoExtractView = true
+                        } label: {
+                            Label {
+                                Text("行動シーンの抽出").bold()
+                            } icon: {
+                                Image(systemName: "movieclapper")
+                            }
+                        }
                     }
                 }
             }
@@ -165,6 +180,10 @@ struct VideoDetailsView: View {
                 }
                 .disabled(!fileExists)
             }
+        }
+        // 抽出画面への遷移
+        .navigationDestination(isPresented: $showVideoExtractView) {
+            VideoExtractView(video: video)
         }
         // 再生画面への遷移
         .fullScreenCover(isPresented: $showVideoPlayerView) {
