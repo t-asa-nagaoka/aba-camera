@@ -42,23 +42,23 @@ struct VideoExtractProcessView: View {
     var body: some View {
         VStack{
             Text("動画を抽出しています").font(.title3).padding(.vertical,12)
+            Text(String(progress) + " / " + String(total)).font(.title3).padding(.vertical,12)
             ProgressView(value: Double(progress), total: Double(total)).padding(.all,12)
             HStack{
                 Text("成功: " + String(success))
                 Text("失敗: " + String(failed))
-                Text("合計: " + String(total))
             }.padding(.bottom,12)
             Button(action: {
                 cancelled = true
             }) {
-                Text("キャンセル").font(.title3).bold().padding(.vertical,12).disabled(!cancelled)
+                Text("キャンセル").font(.title3).bold().padding(.vertical,12).disabled(cancelled)
             }
         }
         .onAppear{
             Task{
                 await doProcess()
+                dismiss()
             }
-            dismiss()
         }
     }
     
