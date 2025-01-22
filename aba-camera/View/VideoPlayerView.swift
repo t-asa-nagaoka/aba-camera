@@ -13,51 +13,33 @@ struct VideoPlayerView: View {
     
     @Environment(\.dismiss) private var dismiss
     @State private var player: AVPlayer?
-    @State private var playerStarted: Bool
-    
-    private var fileExists: Bool {
-        return FileManager.default.fileExists(atPath: self.videoUrl.path)
-    }
     
     init(videoUrl: URL) {
         self.videoUrl = videoUrl
-        self.playerStarted = false
+        self.player = nil
     }
     
     var body: some View {
-        if (fileExists) {
-            ZStack {
-                Color.black.ignoresSafeArea(edges: [.all])
-                if (player != nil) {
-                    VStack {
-                        HStack {
-                            Spacer()
-                            
-                            Button {
-                                dismiss()
-                            } label: {
-                                Image(systemName: "xmark").foregroundStyle(Color.white)
-                            }.padding(.all, 9)
-                            
-                        }
-                        VideoPlayer(player: player!)
-                    }.padding(.bottom, 7)
-                }
-            }
-            .onAppear {
-                player = AVPlayer(url: videoUrl)
-            }
-            .statusBarHidden()
-        } else {
-            VStack {
-                Text("動画ファイルが見つかりません").font(.title3).padding(.vertical,12)
-                Button(action: {
-                    dismiss()
-                }) {
-                    Text("前の画面に戻る").font(.title3).bold().padding(.vertical,12)
-                }
+        ZStack {
+            Color.black.ignoresSafeArea(edges: [.all])
+            if let player = player {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark").foregroundStyle(Color.white)
+                        }.padding(.all, 9)
+                    }
+                    VideoPlayer(player: player)
+                }.padding(.bottom, 7)
             }
         }
+        .onAppear {
+            player = AVPlayer(url: videoUrl)
+        }
+        .statusBarHidden()
     }
     
     static func generatePreviewUrl () -> URL {

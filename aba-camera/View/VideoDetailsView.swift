@@ -55,6 +55,17 @@ struct VideoDetailsView: View {
     var body: some View {
         // 描画するViewのレイアウト
         Form {
+            // ファイル不明エラー
+            if (!fileExists) {
+                Section {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill").bold().imageScale(.large).foregroundStyle(Color.orange)
+                        VStack(alignment: .leading) {
+                            Text("動画ファイルが見つかりません").bold().padding(.vertical, 4)
+                        }.padding(.leading, 3)
+                    }
+                }
+            }
             // タイトル・メモ
             Section (header: Text("タイトル").font(.body)) {
                 Text(title).font(.title3).bold()
