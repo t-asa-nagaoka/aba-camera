@@ -162,13 +162,13 @@ class Video : SwitchHistoryProtocol {
             return nil
         }
         
-        // 元動画のデータから動画・音声トラック・タイムスケールを取得
+        // 元動画のデータから必要なトラックとプロパティを取得
         let sourceAsset: AVURLAsset = .init(url: self.fileUrl)
         let srcVideoTracks: [AVAssetTrack] = try! await sourceAsset.loadTracks(withMediaType: .video)
         let srcAudioTracks: [AVAssetTrack] = try! await sourceAsset.loadTracks(withMediaType: .audio)
         let srcVideoTrack: AVAssetTrack = srcVideoTracks[0]
         let srcAudioTrack: AVAssetTrack = srcAudioTracks[0]
-        let timeScale: CMTimeScale = try! await srcVideoTrack.load(.naturalTimeScale)
+        let (timeScale, size, frameDuration, transform) = try! await srcVideoTrack.load(.naturalTimeScale, .naturalSize, .minFrameDuration, .preferredTransform)
         
         // 出力用のCompositionおよび動画・音声トラックを生成
         let composition = AVMutableComposition()
@@ -186,6 +186,24 @@ class Video : SwitchHistoryProtocol {
         try! videoTrack.insertTimeRange(timeRange, of: srcVideoTrack, at: .zero)
         try! audioTrack.insertTimeRange(timeRange, of: srcAudioTrack, at: .zero)
         
+        // 縦方向で撮影した動画が出力時に横向きにならないように調整
+        // 参考: https://qiita.com/croquette0212/items/59b637ba0050aaa220e8
+        let layerInstruction: AVMutableVideoCompositionLayerInstruction = .init(assetTrack: videoTrack)
+        layerInstruction.setTransform(transform, at: .zero)
+        
+        let instruction: AVMutableVideoCompositionInstruction = .init()
+        instruction.layerInstructions = [layerInstruction]
+        instruction.timeRange = videoTrack.timeRange
+        
+        // 出力条件の構成
+        let videoComposition: AVMutableVideoComposition = .init()
+        videoComposition.frameDuration = frameDuration
+        videoComposition.instructions = [instruction]
+        
+        let transformedSize: CGSize = size.applying(transform)
+        let renderSize: CGSize = .init(width: abs(transformedSize.width), height: abs(transformedSize.height))
+        videoComposition.renderSize = renderSize
+        
         // シーン動画の出力
         guard let session = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
             print("-- Video.extract : Create Export Session Error --")
@@ -194,6 +212,7 @@ class Video : SwitchHistoryProtocol {
         
         let fileType: String = "mp4"
         let fileUrl: URL = Video.generateFileUrl(id: id, fileType: fileType)
+        session.videoComposition = videoComposition
         
         do {
             try await session.export(to: fileUrl, as: .mp4)
