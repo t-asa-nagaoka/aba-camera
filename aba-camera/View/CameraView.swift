@@ -16,13 +16,17 @@ struct CameraView: View {
     @Environment(\.dismiss) var dismiss
     @State private var videoUrl: URL?
     
+    private var canUseCamera: Bool {
+        return UIImagePickerController.isSourceTypeAvailable(.camera)
+    }
+    
     init(id: UUID) {
         self.id = id
         self.videoUrl = nil
     }
     
     var body: some View {
-        if (UIImagePickerController.isSourceTypeAvailable(.camera)) {
+        if (canUseCamera) {
             CameraMoviePickerView(videoUrl: $videoUrl)
             .onAppear {
                 // 画面の向きを縦方向でロック (カメラ部分はロック関係なく自動回転)
@@ -45,11 +49,9 @@ struct CameraView: View {
         } else {
             VStack {
                 Text("カメラを起動できません").font(.title3).padding(.vertical,12)
-                Button(action: {
+                Button("前の画面に戻る") {
                     dismiss()
-                }) {
-                    Text("前の画面に戻る").font(.title3).bold().padding(.vertical,12)
-                }
+                }.font(.title3).bold().padding(.vertical,12)
             }
         }
     }

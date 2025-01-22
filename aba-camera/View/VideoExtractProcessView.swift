@@ -48,11 +48,9 @@ struct VideoExtractProcessView: View {
                 Text("成功: " + String(success))
                 Text("失敗: " + String(failed))
             }.padding(.bottom,12)
-            Button(action: {
+            Button("キャンセル") {
                 cancelled = true
-            }) {
-                Text("キャンセル").font(.title3).bold().padding(.vertical,12).disabled(cancelled)
-            }
+            }.font(.title3).bold().padding(.vertical,12).disabled(cancelled)
         }
         .onAppear{
             Task{
