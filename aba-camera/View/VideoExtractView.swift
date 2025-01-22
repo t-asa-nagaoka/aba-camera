@@ -11,13 +11,14 @@ struct VideoExtractView: View {
     private let video: Video
     
     @AppStorage("endpointUrl") var endpointUrl: String = ""
-    @AppStorage("beforeSeconds") var beforeSeconds: Int = 20
-    @AppStorage("afterSeconds") var afterSeconds: Int = 60
+    @AppStorage("beforeSeconds") var before: Int = 20
+    @AppStorage("afterSeconds") var after: Int = 60
     @State private var switchHistories: [SwitchHistory]
     @State private var id: Int
     @State private var date: Date
     @State private var second: Int
     @State private var subjective: Bool
+    @State private var showVideoExtractProcessView: Bool
     
     private let format: DateFormatter
     
@@ -32,6 +33,7 @@ struct VideoExtractView: View {
         self.date = video.recordedStart
         self.second = Calendar.current.component(.second, from: video.recordedStart)
         self.subjective = false
+        self.showVideoExtractProcessView = false
         self.format = .init()
         self.format.dateFormat = "yyyy/MM/dd HH:mm:ss"
         
@@ -86,10 +88,10 @@ struct VideoExtractView: View {
             Section (header: Text("抽出条件").font(.body)) {
                 HStack {
                     Text("作動")
-                    Text(String(beforeSeconds))
+                    Text(String(before))
                     Text("秒前")
                     Text("から")
-                    Text(String(afterSeconds))
+                    Text(String(after))
                     Text("秒後")
                 }
             }
@@ -100,6 +102,11 @@ struct VideoExtractView: View {
                         VStack(alignment: .leading) {
                             Text(format.string(from:switchHistory.happend))
                             Text(switchHistory.subjective ? "主観スイッチ" : "心拍 (客観) スイッチ").foregroundStyle(Color.secondary)
+                            if (switchHistory.status == .success) {
+                                Text("抽出成功").foregroundStyle(Color.blue).bold()
+                            } else if (switchHistory.status == .failed) {
+                                Text("抽出失敗").foregroundStyle(Color.red).bold()
+                            }
                         }.swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button(role: .destructive) {
                                 delete(id: switchHistory.id)
@@ -123,13 +130,17 @@ struct VideoExtractView: View {
         .toolbar{
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    
+                    showVideoExtractProcessView = true
                 } label: {
                     Image(systemName: "movieclapper")
                     Text("抽出")
                 }
                 .disabled(switchHistories.count == 0)
             }
+        }
+        // 抽出処理画面への遷移
+        .fullScreenCover(isPresented: $showVideoExtractProcessView) {
+            VideoExtractProcessView(parent: video, switchHistories: $switchHistories)
         }
         .navigationTitle("行動シーンの抽出")
         .navigationBarTitleDisplayMode(.inline)
