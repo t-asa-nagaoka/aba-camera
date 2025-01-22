@@ -67,11 +67,6 @@ struct VideoListView: View {
         return self.filteredVideos.sorted{ $0.recordedStart > $1.recordedStart }
     }
     
-    // 既存の動画IDのリスト
-    private var ids: [UUID] {
-        return self.filteredVideos.map{ $0.id }
-    }
-    
     init() {
         self.parentId = nil
         self.deletingVideo = nil
