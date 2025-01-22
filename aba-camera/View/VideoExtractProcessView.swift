@@ -18,7 +18,11 @@ struct VideoExtractProcessView: View {
     @Binding var switchHistories: [SwitchHistory]
     @Query private var videos: [Video]
     @State private var progress: Int
-    @State private var cancelled: Bool
+    @State private var task: Task<Void, Never>?
+    
+    private var cancelled: Bool {
+        return self.task?.isCancelled ?? false
+    }
     
     private var success: Int {
         return self.switchHistories.count{ $0.status == .success }
@@ -36,7 +40,7 @@ struct VideoExtractProcessView: View {
         self.parent = parent
         self._switchHistories = switchHistories
         self.progress = 0
-        self.cancelled = false
+        self.task = nil
     }
     
     var body: some View {
@@ -49,11 +53,11 @@ struct VideoExtractProcessView: View {
                 Text("失敗: " + String(failed))
             }.padding(.bottom,12)
             Button("キャンセル") {
-                cancelled = true
+                task?.cancel()
             }.font(.title3).bold().padding(.vertical,12).disabled(cancelled)
         }
         .onAppear{
-            Task{
+            task = Task{
                 await doProcess()
                 dismiss()
             }
