@@ -147,7 +147,8 @@ struct VideoExtractView: View {
     }
     
     private func add() {
-        let date: Date =  Calendar.current.date(bySetting: .second, value: self.second, of: self.date)!
+        let secDiff: Int = self.second - Calendar.current.component(.second, from: self.date)
+        let date: Date =  Calendar.current.date(byAdding: .second, value: secDiff, to: self.date)!
         let switchHistory: SwitchHistory = .init(id: self.id, happend: date, subjective: self.subjective)
         self.switchHistories.append(switchHistory)
         self.id += 1
