@@ -16,6 +16,7 @@ struct CameraMoviePickerView: UIViewControllerRepresentable {
         picker.delegate = context.coordinator
         picker.mediaTypes = [UTType.movie.identifier]
         picker.videoQuality = videoHighQuality ? .typeHigh : .typeMedium
+        picker.videoMaximumDuration = 14400 // 最大4時間の録画を可能に
 
         return picker
     }
