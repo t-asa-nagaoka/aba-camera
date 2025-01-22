@@ -55,6 +55,7 @@ struct VideoDetailsView: View {
     var body: some View {
         // 描画するViewのレイアウト
         Form {
+            // タイトル・メモ
             Section (header: Text("タイトル").font(.body)) {
                 Text(title).font(.title3).bold()
             }
@@ -63,6 +64,7 @@ struct VideoDetailsView: View {
                     Text(memo)
                 }
             }
+            // 動画ID (デバッグのみ)
             #if DEBUG
             Section (header: Text("動画ID (デバッグ用)").font(.body)) {
                 Text(video.id.uuidString)
@@ -73,19 +75,9 @@ struct VideoDetailsView: View {
                 }
             }
             #endif
-            Section{
-                HStack {
-                    Text("録画開始")
-                    Spacer()
-                    Text(format.string(from:video.recordedStart)).foregroundStyle(Color.secondary)
-                }
-                HStack {
-                    Text("録画終了")
-                    Spacer()
-                    Text(format.string(from:video.recordedEnd)).foregroundStyle(Color.secondary)
-                }
-            }
+            // 撮影動画と行動シーンで表示を分ける
             if (video.isScene) {
+                // 心拍スイッチ履歴 (行動シーンのみ)
                 Section (header: Text("心拍スイッチ情報").font(.body)) {
                     HStack {
                         Text("作動日時")
@@ -99,33 +91,44 @@ struct VideoDetailsView: View {
                     }
                 }
             } else {
+                // 行動シーン一覧へのリンク (撮影動画のみ)
                 Section {
                     NavigationLink(destination: VideoListView(parentId: video.id)) {
                         Text("行動シーン")
                     }
                 }
-                if (fileExists) {
-                    Section {
-                        Button {
-                            showVideoExtractView = true
-                        } label: {
-                            Label {
-                                Text("行動シーンの抽出").bold()
-                            } icon: {
-                                Image(systemName: "movieclapper")
-                            }
-                        }
-                    }
-                }
             }
-            Section {
+            // 日時情報
+            Section{
+                HStack {
+                    Text("録画開始")
+                    Spacer()
+                    Text(format.string(from:video.recordedStart)).foregroundStyle(Color.secondary)
+                }
+                HStack {
+                    Text("録画終了")
+                    Spacer()
+                    Text(format.string(from:video.recordedEnd)).foregroundStyle(Color.secondary)
+                }
                 HStack {
                     Text(video.isScene ? "抽出日時" : "データ作成日時")
                     Spacer()
                     Text(format.string(from:video.created)).foregroundStyle(Color.secondary)
                 }
             }
+            // 各種操作のボタン
             Section {
+                if (!video.isScene && fileExists) {
+                    Button {
+                        showVideoExtractView = true
+                    } label: {
+                        Label {
+                            Text("行動シーンの抽出").bold()
+                        } icon: {
+                            Image(systemName: "movieclapper")
+                        }
+                    }
+                }
                 Button {
                     showVideoInfoEditView = true
                 } label: {
@@ -140,6 +143,7 @@ struct VideoDetailsView: View {
                     ShareLink("他のアプリに送信・保存", item: fileUrl)
                 }
             }
+            // 削除ボタン
             Section {
                 Button(role: .destructive){
                     showDeleteConfirmAlert = true
