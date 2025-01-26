@@ -10,7 +10,7 @@ import SwiftUI
 struct VideoExtractView: View {
     private let video: Video
     
-    @AppStorage("endpointUrl") var endpointUrl: String = ""
+    @AppStorage("endpointUrl") var url: String = ""
     @AppStorage("beforeSeconds") var before: Int = 20
     @AppStorage("afterSeconds") var after: Int = 60
     @State private var switchHistories: [SwitchHistory]
@@ -18,12 +18,14 @@ struct VideoExtractView: View {
     @State private var date: Date
     @State private var second: Int
     @State private var subjective: Bool
+    @State private var fetching: Bool
+    @State private var showFetchFailedAlert: Bool
     @State private var showVideoExtractProcessView: Bool
     
     private let format: DateFormatter
     
-    private var url: URL? {
-        return .init(string: self.endpointUrl)
+    private var canFetch: Bool {
+        return URL(string: self.url) != nil
     }
     
     init(video: Video) {
@@ -33,6 +35,8 @@ struct VideoExtractView: View {
         self.date = video.recordedStart
         self.second = Calendar.current.component(.second, from: video.recordedStart)
         self.subjective = false
+        self.fetching = false
+        self.showFetchFailedAlert = false
         self.showVideoExtractProcessView = false
         self.format = .init()
         self.format.dateFormat = "yyyy/MM/dd HH:mm:ss"
@@ -47,13 +51,15 @@ struct VideoExtractView: View {
         // 描画するViewのレイアウト
         Form {
             // 自動
-            if (url != nil){
+            if (canFetch){
                 Section (header: Text("心拍スイッチ連携").font(.body)) {
                     Button {
-                        
+                        Task {
+                            await fetch()
+                        }
                     } label: {
                         Label("Webから心拍スイッチ履歴を取得", systemImage: "globe")
-                    }
+                    }.disabled(fetching)
                 }
             }
             // 手動
@@ -69,7 +75,7 @@ struct VideoExtractView: View {
                     add()
                 } label: {
                     Label("心拍スイッチ履歴を追加", systemImage: "plus")
-                }
+                }.disabled(fetching)
             }
             // 元の動画の情報
             Section (header: Text("元の動画").font(.body)) {
@@ -126,6 +132,8 @@ struct VideoExtractView: View {
                 }
             }
         }
+        // Webからの履歴取得失敗時
+        .alert("履歴の取得に失敗しました。", isPresented: $showFetchFailedAlert) {}
         // ツールバーに抽出ボタンを設置
         .toolbar{
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -144,6 +152,23 @@ struct VideoExtractView: View {
         }
         .navigationTitle("行動シーンの抽出")
         .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    private func fetch() async {
+        self.fetching = true
+        
+        let switchHistories: [SwitchHistory]? = await  SwitchHistory.fetch(url: self.url, start: self.video.recordedStart, end: self.video.recordedEnd)
+        
+        if let switchHistories = switchHistories {
+            for switchHistory in switchHistories {
+                self.switchHistories.append(.init(id: self.id, switchHistory: switchHistory))
+                self.id += 1
+            }
+        } else {
+            self.showFetchFailedAlert = true
+        }
+        
+        self.fetching = false
     }
     
     private func add() {
