@@ -17,11 +17,10 @@ struct VideoDetailsView: View {
     @State private var title: String
     @State private var memo: String
     @State private var fileUrl: URL
+    @State private var edited: Bool
     @State private var showVideoExtractView: Bool
     @State private var showVideoPlayerView: Bool
     @State private var showVideoInfoEditView: Bool
-    @State private var showRenameSuccessAlert: Bool
-    @State private var showRenameFailedAlert: Bool
     @State private var showDeleteConfirmAlert: Bool
     @State private var showDeleteFilesFailedAlert: Bool
     
@@ -31,21 +30,15 @@ struct VideoDetailsView: View {
         return FileManager.default.fileExists(atPath: self.fileUrl.path)
     }
     
-    private var updated: Bool {
-        return self.video.title != self.title
-        || self.video.memo != self.memo
-    }
-    
     init(video: Video) {
         self.video = video
         self.title = video.title
         self.memo = video.memo
         self.fileUrl = video.fileUrl
+        self.edited = false
         self.showVideoExtractView = false
         self.showVideoPlayerView = false
         self.showVideoInfoEditView = false
-        self.showRenameSuccessAlert = false
-        self.showRenameFailedAlert = false
         self.showDeleteConfirmAlert = false
         self.showDeleteFilesFailedAlert = false
         self.format = .init()
@@ -150,11 +143,6 @@ struct VideoDetailsView: View {
                     Label("タイトルとメモを編集", systemImage:"pencil.line")
                 }
                 if (fileExists) {
-                    Button {
-                        rename()
-                    } label: {
-                        Label("ファイル名をタイトルと同一にする", systemImage: "rectangle.and.pencil.and.ellipsis")
-                    }
                     ShareLink("他のアプリに送信・保存", item: fileUrl)
                 }
             }
@@ -167,10 +155,6 @@ struct VideoDetailsView: View {
                 }
             }
         }
-        // ファイル名変更成功時のアラート
-        .alert("ファイル名を変更しました。", isPresented: $showRenameSuccessAlert) {}
-        // ファイル名変更失敗時のアラート
-        .alert("ファイル名を変更できませんでした。", isPresented: $showRenameFailedAlert) {}
         // 動画削除前の確認アラート
         .alert("動画を削除しますか?", isPresented: $showDeleteConfirmAlert) {
             Button("キャンセル", role: .cancel) {}
@@ -211,9 +195,14 @@ struct VideoDetailsView: View {
         // 情報の編集画面への遷移
         .sheet(isPresented: $showVideoInfoEditView) {
             NavigationStack {
-                VideoInfoEditView(video: video, title: $title, memo: $memo)
+                VideoInfoEditView(video: video, edited: $edited)
                 .onDisappear {
-                    if (updated) {
+                    // 変更を反映
+                    if (edited) {
+                        title = video.title
+                        memo = video.memo
+                        fileUrl = video.fileUrl
+                        edited = false
                         try! context.save()
                     }
                 }
@@ -222,17 +211,6 @@ struct VideoDetailsView: View {
         }
         .navigationTitle(video.isScene ? "シーン動画" : "撮影動画")
         .navigationBarTitleDisplayMode(.inline)
-    }
-    
-    // ファイル名の変更
-    private func rename() {
-        if (video.rename(fileName: title)) {
-            self.fileUrl = video.fileUrl
-            try! context.save()
-            showRenameSuccessAlert = true
-        } else {
-            showRenameFailedAlert = true
-        }
     }
     
     // 撮影動画の削除

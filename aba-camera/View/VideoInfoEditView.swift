@@ -11,13 +11,15 @@ struct VideoInfoEditView: View {
     private let video: Video
     
     @Environment(\.dismiss) var dismiss
-    @Binding var title: String
-    @Binding var memo: String
+    @State private var title: String
+    @State private var memo: String
+    @Binding var edited: Bool
     
-    init(video: Video, title: Binding<String>, memo: Binding<String>) {
+    init(video: Video, edited: Binding<Bool>) {
         self.video = video
-        self._title = title
-        self._memo = memo
+        self.title = video.title
+        self.memo = video.memo
+        self._edited = edited
     }
     
     var body: some View {
@@ -37,8 +39,6 @@ struct VideoInfoEditView: View {
         .toolbar{
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(role: .cancel) {
-                    self.title = video.title
-                    self.memo = video.memo
                     dismiss()
                 } label: {
                     Text("キャンセル")
@@ -46,8 +46,14 @@ struct VideoInfoEditView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
+                    // 変更を反映
                     video.title = self.title
                     video.memo = self.memo
+                    self.edited = true
+                    
+                    // ファイル名をタイトルに合わせる
+                    _ = video.rename(fileName: video.title)
+                    
                     dismiss()
                 } label: {
                     Text("完了").bold()
@@ -62,6 +68,6 @@ struct VideoInfoEditView: View {
 
 #Preview {
     NavigationStack {
-        VideoInfoEditView(video: .init(), title: .constant(""), memo: .constant(""))
+        VideoInfoEditView(video: .init(), edited: .constant(false))
     }
 }

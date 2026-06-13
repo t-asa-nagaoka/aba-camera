@@ -66,6 +66,9 @@ struct CameraView: View {
             format.dateFormat = "yyyy.MM.dd"
             video.title = format.string(from: video.recordedStart)
             
+            // ファイル名をタイトルに合わせる
+            _ = video.rename(fileName: video.title)
+            
             // レコード追加
             self.context.insert(video)
             try! self.context.save()
