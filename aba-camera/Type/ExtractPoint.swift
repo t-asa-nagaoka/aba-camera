@@ -33,17 +33,18 @@ struct ExtractPoint : ExtractPointProtocol {
         self.status = .none
     }
     
-    static func fetch(url: String, start: Date, end: Date) async -> [ExtractPoint]? {
+    static func fetch(apiUrl: String, subjective: Bool, start: Date, end: Date) async -> [ExtractPoint]? {
+        let endpoint: String = subjective ? "icon/list" : "switch-history/list"
         let query: String = "?start=" + DateHelper.toISOString(date: start) + "&end=" + DateHelper.toISOString(date: end)
         
-        guard let endpoint = URL(string: url + query) else {
+        guard let url = URL(string: apiUrl + endpoint + query) else {
             print("-- ExtractPoint.fetch : URL Initialize Error --")
-            print("url: " + url + query)
+            print("url: " + apiUrl + endpoint + query)
             return nil
         }
         
         // リクエストの作成
-        var request: URLRequest = .init(url: endpoint)
+        var request: URLRequest = .init(url: url)
         request.httpMethod = "Get"
         request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
         
@@ -55,16 +56,12 @@ struct ExtractPoint : ExtractPointProtocol {
         // JSONをパース
         do {
             let jsonDict = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) as! [String: Any]
-            let histories = jsonDict["extractPoints"] as! [[String: Any]]
+            let points = jsonDict[subjective ? "icons" : "switchHistories"] as! [[String: Any]]
             var extractPoints: [ExtractPoint] = []
             
-            for history in histories {
-                let dateString = history["date"] as! String
+            for point in points {
+                let dateString = point["date"] as! String
                 let date: Date = DateHelper.fromISOString(string: dateString)
-                
-                //let subjectiveString = history["subjective"] as! String
-                //let subjective: Bool = subjectiveString.lowercased() == "true"
-                let subjective: Bool = history["subjective"] as! Bool
                 
                 let extractPoint: ExtractPoint = .init(id: 0, happend: date, subjective: subjective)
                 
@@ -74,7 +71,7 @@ struct ExtractPoint : ExtractPointProtocol {
             return extractPoints
         } catch {
             print("-- ExtractPoint.fetch : JSON Parse Error --")
-            print("url: " + url + query)
+            print("url: " + apiUrl + endpoint + query)
             print(error)
             return nil
         }

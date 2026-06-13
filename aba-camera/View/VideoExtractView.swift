@@ -10,7 +10,7 @@ import SwiftUI
 struct VideoExtractView: View {
     private let video: Video
     
-    @AppStorage("apiUrl") var url: String = ""
+    @AppStorage("apiUrl") var apiUrl: String = ""
     @AppStorage("beforeSeconds") var before: Int = 20
     @AppStorage("afterSeconds") var after: Int = 60
     @State private var extractPoints: [ExtractPoint]
@@ -24,7 +24,7 @@ struct VideoExtractView: View {
     private let format: DateFormatter
     
     private var canFetch: Bool {
-        return URL(string: self.url) != nil
+        return URL(string: self.apiUrl) != nil
     }
     
     init(video: Video) {
@@ -53,14 +53,14 @@ struct VideoExtractView: View {
                 Section (header: Text("Webシステム連携").font(.body)) {
                     Button {
                         Task {
-                            await fetch()
+                            await fetch(subjective: true)
                         }
                     } label: {
                         Label("アイコンデータ (主観記録) を取得", systemImage: "globe")
                     }.disabled(fetching)
                     Button {
                         Task {
-                            await fetch()
+                            await fetch(subjective: false)
                         }
                     } label: {
                         Label("IoTスイッチ履歴 (客観記録) を取得", systemImage: "globe")
@@ -162,10 +162,10 @@ struct VideoExtractView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    private func fetch() async {
+    private func fetch(subjective: Bool) async {
         self.fetching = true
         
-        let extractPoints: [ExtractPoint]? = await ExtractPoint.fetch(url: self.url, start: self.video.recordedStart, end: self.video.recordedEnd)
+        let extractPoints: [ExtractPoint]? = await ExtractPoint.fetch(apiUrl: self.apiUrl, subjective: subjective, start: self.video.recordedStart, end: self.video.recordedEnd)
         
         if let extractPoints = extractPoints {
             for extractPoint in extractPoints {
