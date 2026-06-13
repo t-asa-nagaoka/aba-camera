@@ -63,8 +63,8 @@ struct VideoListView: View {
     
     // 並び替えた動画のリスト
     private var sortedVideos: [Video] {
-        // 録画開始日時の降順に並び替え
-        return self.filteredVideos.sorted{ $0.recordedStart > $1.recordedStart }
+        // 録画開始日時の降順に並び替え (先頭部分の切り出しの場合はシーン動画を上に)
+        return self.filteredVideos.sorted{ $0.recordedStart > $1.recordedStart || ($0.recordedStart == $1.recordedStart && $0.isScene && !$1.isScene) }
     }
     
     init() {
