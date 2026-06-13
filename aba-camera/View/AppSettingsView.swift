@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AppSettingsView: View {
     
-    @AppStorage("endpointUrl") var endpointUrl: String = ""
+    @AppStorage("apiUrl") var apiUrl: String = ""
     @AppStorage("videoHighQuality") var videoHighQuality: Bool = false
     @AppStorage("beforeSeconds") var beforeSeconds: Int = 20
     @AppStorage("afterSeconds") var afterSeconds: Int = 60
@@ -25,8 +25,8 @@ struct AppSettingsView: View {
     
     var body: some View {
         Form{
-            Section (header: Text("エンドポイントURL").font(.body), footer: Text("心拍データ取得システム (Webシステム) に登録したデバイスの「接続先URL」(履歴取得用) を入力します。").font(.body)) {
-                TextField("URLを入力", text: $endpointUrl)
+            Section (header: Text("APIの基点URL").font(.body), footer: Text("心拍データ取得システム (Webシステム) に登録したアクセス権限の「外部APIの基点URL」 を入力します。").font(.body)) {
+                TextField("URLを入力", text: $apiUrl)
                     .textInputAutocapitalization(.never)
                     //.disableAutocorrection(true)
                     .keyboardType(.URL)
@@ -34,7 +34,7 @@ struct AppSettingsView: View {
             Section (header: Text("撮影設定").font(.body)) {
                 Toggle("高画質撮影", isOn: $videoHighQuality)
             }
-            Section (header: Text("心拍スイッチ作動前後の抽出時間 (秒)").font(.body)) {
+            Section (header: Text("IoTスイッチ作動前後の抽出時間 (秒)").font(.body)) {
                 HStack {
                     Text("前: ").foregroundStyle(Color.secondary)
                     TextField("秒数を入力", value: $beforeSeconds, format: .number)
@@ -67,8 +67,6 @@ struct AppSettingsView: View {
         .navigationTitle("設定")
         .navigationBarTitleDisplayMode(.inline)
     }
-    
-    
 }
 
 #Preview {

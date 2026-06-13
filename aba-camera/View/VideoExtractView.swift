@@ -10,7 +10,7 @@ import SwiftUI
 struct VideoExtractView: View {
     private let video: Video
     
-    @AppStorage("endpointUrl") var url: String = ""
+    @AppStorage("apiUrl") var url: String = ""
     @AppStorage("beforeSeconds") var before: Int = 20
     @AppStorage("afterSeconds") var after: Int = 60
     @State private var switchHistories: [SwitchHistory]
@@ -52,13 +52,13 @@ struct VideoExtractView: View {
         Form {
             // 自動
             if (canFetch){
-                Section (header: Text("心拍スイッチ連携").font(.body)) {
+                Section (header: Text("IoTスイッチ連携").font(.body)) {
                     Button {
                         Task {
                             await fetch()
                         }
                     } label: {
-                        Label("Webから心拍スイッチ履歴を取得", systemImage: "globe")
+                        Label("WebからIoTスイッチ履歴を取得", systemImage: "globe")
                     }.disabled(fetching)
                 }
             }
@@ -74,7 +74,7 @@ struct VideoExtractView: View {
                 Button {
                     add()
                 } label: {
-                    Label("心拍スイッチ履歴を追加", systemImage: "plus")
+                    Label("IoTスイッチ履歴を追加", systemImage: "plus")
                 }.disabled(fetching)
             }
             // 元の動画の情報
@@ -103,7 +103,7 @@ struct VideoExtractView: View {
             }
             // 抽出ポイントの一覧
             if (switchHistories.count > 0) {
-                Section (header: Text("心拍スイッチ履歴 (抽出ポイント)").font(.body)) {
+                Section (header: Text("IoTスイッチ履歴 (抽出ポイント)").font(.body)) {
                     ForEach(switchHistories, id: \.id) { switchHistory in
                         VStack(alignment: .leading) {
                             Text(format.string(from:switchHistory.happend))
@@ -150,7 +150,7 @@ struct VideoExtractView: View {
         .fullScreenCover(isPresented: $showVideoExtractProcessView) {
             VideoExtractProcessView(parent: video, switchHistories: $switchHistories)
         }
-        .navigationTitle("行動シーンの抽出")
+        .navigationTitle("シーン動画の抽出")
         .navigationBarTitleDisplayMode(.inline)
     }
     

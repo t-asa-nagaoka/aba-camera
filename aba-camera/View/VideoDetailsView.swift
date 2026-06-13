@@ -86,12 +86,12 @@ struct VideoDetailsView: View {
                 }
             }
             #endif
-            // 撮影動画と行動シーンで表示を分ける
+            // 撮影動画とシーン動画で表示を分ける
             if (video.isScene) {
-                // 心拍スイッチ履歴 (行動シーンのみ)
-                Section (header: Text("心拍スイッチ情報").font(.body)) {
+                // IoTスイッチ履歴 (シーン動画のみ)
+                Section (header: Text("IoTスイッチ情報").font(.body)) {
                     HStack {
-                        Text("作動日時")
+                        Text("検出日時")
                         Spacer()
                         Text(format.string(from:video.happend)).foregroundStyle(Color.secondary)
                     }
@@ -102,10 +102,10 @@ struct VideoDetailsView: View {
                     }
                 }
             } else {
-                // 行動シーン一覧へのリンク (撮影動画のみ)
+                // シーン動画一覧へのリンク (撮影動画のみ)
                 Section {
                     NavigationLink(destination: VideoListView(parentId: video.id)) {
-                        Text("行動シーン")
+                        Text("抽出したシーン動画")
                     }
                 }
             }
@@ -134,7 +134,7 @@ struct VideoDetailsView: View {
                         showVideoExtractView = true
                     } label: {
                         Label {
-                            Text("行動シーンの抽出").bold()
+                            Text("シーン動画の抽出").bold()
                         } icon: {
                             Image(systemName: "movieclapper")
                         }
@@ -216,7 +216,7 @@ struct VideoDetailsView: View {
             }
             .interactiveDismissDisabled()
         }
-        .navigationTitle(video.isScene ? "行動シーン" : "撮影動画")
+        .navigationTitle(video.isScene ? "シーン動画" : "撮影動画")
         .navigationBarTitleDisplayMode(.inline)
     }
     
@@ -246,7 +246,7 @@ struct VideoDetailsView: View {
         }
     }
     
-    // 撮影動画→行動シーンの関連付けの解除
+    // 撮影動画→シーン動画の関連付けの解除
     private func detachRelations() {
         for video in self.videos {
             if (video.parentId == self.video.id) {

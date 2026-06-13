@@ -32,16 +32,16 @@ struct VideoListView: View {
     // 画面上部のタイトル
     private var viewTitle: String {
         if (self.parentId != nil) {
-            return "シーン一覧"
+            return "シーン動画一覧"
         }
         
         switch self.filterMode {
         case .all:
             return "すべて"
         case .recordedOnly:
-            return "撮影履歴"
+            return "撮影動画一覧"
         case .sceneOnly:
-            return "シーン一覧"
+            return "シーン動画一覧"
         }
     }
     
@@ -70,7 +70,7 @@ struct VideoListView: View {
     init() {
         self.parentId = nil
         self.deletingVideo = nil
-        self.filterMode = .recordedOnly
+        self.filterMode = .all
         self.showCameraView = false
         self.showAppSettingsView = false
         self.showDeleteConfirmAlert = false
@@ -120,7 +120,7 @@ struct VideoListView: View {
                             Text(video.title).font(.title3).bold()
                                 .padding(.vertical, 6)
                             if(filterMode == .all) {
-                                Text(video.isScene ? "行動シーン" : "撮影動画").font(.subheadline).foregroundStyle(Color.blue).bold().padding(.bottom, 2)
+                                Text(video.isScene ? "シーン動画" : "撮影動画").font(.subheadline).foregroundStyle(Color.blue).bold().padding(.bottom, 2)
                             }
                             Text(format.string(from: video.recordedStart)).font(.subheadline).foregroundStyle(Color.secondary).bold()
                         }
@@ -148,7 +148,7 @@ struct VideoListView: View {
                     Button {
                         addEmpty(isScene: true)
                     } label: {
-                        Label("空の行動シーンを追加 (デバッグ用)", systemImage: "plus")
+                        Label("空のシーン動画を追加 (デバッグ用)", systemImage: "plus")
                     }
                 }
                 #endif
@@ -204,11 +204,11 @@ struct VideoListView: View {
                     Button("すべて") {
                         filterMode = .all
                     }
-                    Button("撮影履歴") {
+                    Button("撮影動画一覧") {
                         filterMode = .recordedOnly
                     }
                 }
-                Button("シーン一覧") {
+                Button("シーン動画一覧") {
                     filterMode = .sceneOnly
                 }
             }
@@ -278,7 +278,7 @@ struct VideoListView: View {
         try! self.context.save()
     }
     
-    // 撮影動画→行動シーンの関連付けの解除
+    // 撮影動画→シーン動画の関連付けの解除
     private func detachRelations(deletingVideos: [Video]) {
         let ids: [UUID] = deletingVideos.map{ $0.id }
         for video in self.videos {
