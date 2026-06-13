@@ -15,7 +15,7 @@ struct VideoExtractProcessView: View {
     @Environment(\.dismiss) var dismiss
     @AppStorage("beforeSeconds") var before: Int = 20
     @AppStorage("afterSeconds") var after: Int = 60
-    @Binding var switchHistories: [SwitchHistory]
+    @Binding var extractPoints: [ExtractPoint]
     @Query private var videos: [Video]
     @State private var progress: Int
     @State private var task: Task<Void, Never>?
@@ -25,20 +25,20 @@ struct VideoExtractProcessView: View {
     }
     
     private var success: Int {
-        return self.switchHistories.count{ $0.status == .success }
+        return self.extractPoints.count{ $0.status == .success }
     }
     
     private var failed: Int {
-        return self.switchHistories.count{ $0.status == .failed }
+        return self.extractPoints.count{ $0.status == .failed }
     }
     
     private var total: Int {
-        return self.switchHistories.count
+        return self.extractPoints.count
     }
     
-    init(parent: Video, switchHistories: Binding<[SwitchHistory]>) {
+    init(parent: Video, extractPoints: Binding<[ExtractPoint]>) {
         self.parent = parent
-        self._switchHistories = switchHistories
+        self._extractPoints = extractPoints
         self.progress = 0
         self.task = nil
     }
@@ -71,10 +71,10 @@ struct VideoExtractProcessView: View {
         
         // 動画の抽出
         while (!self.cancelled && self.progress < self.total) {
-            let switchHistory: SwitchHistory = self.switchHistories[self.progress]
+            let extractPoint: ExtractPoint = self.extractPoints[self.progress]
             let id: UUID = generateId()
             // 正常に抽出できた場合のみレコード追加
-            let result: Video? = await self.parent.extract(id: id, switchHistory: switchHistory, before: self.before, after: self.after)
+            let result: Video? = await self.parent.extract(id: id, extractPoint: extractPoint, before: self.before, after: self.after)
             if let video = result {
                 // タイトルを元の動画と同一にする
                 video.title = self.parent.title
@@ -93,13 +93,13 @@ struct VideoExtractProcessView: View {
     // 以前の実行結果のリセット
     private func resetStatus() {
         for index in 0 ..< self.total {
-            self.switchHistories[index].status = .none
+            self.extractPoints[index].status = .none
         }
     }
     
     // 結果の反映
     private func updateStatus(isSuccess: Bool) {
-        self.switchHistories[self.progress].status = isSuccess ? .success : .failed
+        self.extractPoints[self.progress].status = isSuccess ? .success : .failed
     }
     
     // 重複しないUUIDの生成
@@ -107,12 +107,11 @@ struct VideoExtractProcessView: View {
         let id: UUID = .init()
         return videos.contains{ $0.id == id } ? generateId() : id
     }
-    
 }
 
 #Preview {
     NavigationStack{
-        VideoExtractProcessView(parent: .init(), switchHistories: .constant([]))
+        VideoExtractProcessView(parent: .init(), extractPoints: .constant([]))
             .modelContainer(for: [Video.self])
     }
 }

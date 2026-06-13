@@ -88,17 +88,21 @@ struct VideoDetailsView: View {
             #endif
             // 撮影動画とシーン動画で表示を分ける
             if (video.isScene) {
-                // IoTスイッチ履歴 (シーン動画のみ)
-                Section (header: Text("IoTスイッチ情報").font(.body)) {
+                // 抽出ポイント情報 (シーン動画のみ)
+                Section (header: Text("抽出ポイント情報").font(.body)) {
                     HStack {
-                        Text("検出日時")
+                        Text("基点日時")
                         Spacer()
                         Text(format.string(from:video.happend)).foregroundStyle(Color.secondary)
                     }
                     HStack {
-                        Text("スイッチの種類")
+                        Text("種類")
                         Spacer()
-                        Text(video.subjective ? "主観" : "心拍 (客観)").foregroundStyle(Color.secondary)
+                        if (video.subjective != nil) {
+                            Text(video.subjective! ? "アイコンデータ (主観)" : "IoTスイッチ (客観)").foregroundStyle(Color.secondary)
+                        } else {
+                            Text("手動入力").foregroundStyle(Color.secondary)
+                        }
                     }
                 }
             } else {

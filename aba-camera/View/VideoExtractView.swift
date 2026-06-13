@@ -13,11 +13,10 @@ struct VideoExtractView: View {
     @AppStorage("apiUrl") var url: String = ""
     @AppStorage("beforeSeconds") var before: Int = 20
     @AppStorage("afterSeconds") var after: Int = 60
-    @State private var switchHistories: [SwitchHistory]
+    @State private var extractPoints: [ExtractPoint]
     @State private var id: Int
     @State private var date: Date
     @State private var second: Int
-    @State private var subjective: Bool
     @State private var fetching: Bool
     @State private var showFetchFailedAlert: Bool
     @State private var showVideoExtractProcessView: Bool
@@ -30,11 +29,10 @@ struct VideoExtractView: View {
     
     init(video: Video) {
         self.video = video
-        self.switchHistories = []
+        self.extractPoints = []
         self.id = 1
         self.date = video.recordedStart
         self.second = Calendar.current.component(.second, from: video.recordedStart)
-        self.subjective = false
         self.fetching = false
         self.showFetchFailedAlert = false
         self.showVideoExtractProcessView = false
@@ -52,13 +50,20 @@ struct VideoExtractView: View {
         Form {
             // 自動
             if (canFetch){
-                Section (header: Text("IoTスイッチ連携").font(.body)) {
+                Section (header: Text("Webシステム連携").font(.body)) {
                     Button {
                         Task {
                             await fetch()
                         }
                     } label: {
-                        Label("WebからIoTスイッチ履歴を取得", systemImage: "globe")
+                        Label("アイコンデータ (主観記録) を取得", systemImage: "globe")
+                    }.disabled(fetching)
+                    Button {
+                        Task {
+                            await fetch()
+                        }
+                    } label: {
+                        Label("IoTスイッチ履歴 (客観記録) を取得", systemImage: "globe")
                     }.disabled(fetching)
                 }
             }
@@ -70,11 +75,10 @@ struct VideoExtractView: View {
                         Text(String(format: "%02d", index))
                     }
                 }
-                Toggle("主観スイッチ", isOn: $subjective)
                 Button {
                     add()
                 } label: {
-                    Label("IoTスイッチ履歴を追加", systemImage: "plus")
+                    Label("抽出ポイントを追加", systemImage: "plus")
                 }.disabled(fetching)
             }
             // 元の動画の情報
@@ -93,7 +97,7 @@ struct VideoExtractView: View {
             // 抽出条件
             Section (header: Text("抽出条件").font(.body)) {
                 HStack {
-                    Text("作動")
+                    Text("検出")
                     Text(String(before))
                     Text("秒前")
                     Text("から")
@@ -102,20 +106,24 @@ struct VideoExtractView: View {
                 }
             }
             // 抽出ポイントの一覧
-            if (switchHistories.count > 0) {
-                Section (header: Text("IoTスイッチ履歴 (抽出ポイント)").font(.body)) {
-                    ForEach(switchHistories, id: \.id) { switchHistory in
+            if (extractPoints.count > 0) {
+                Section (header: Text("抽出ポイント").font(.body)) {
+                    ForEach(extractPoints, id: \.id) { extractPoint in
                         VStack(alignment: .leading) {
-                            Text(format.string(from:switchHistory.happend))
-                            Text(switchHistory.subjective ? "主観スイッチ" : "心拍 (客観) スイッチ").foregroundStyle(Color.secondary)
-                            if (switchHistory.status == .success) {
+                            Text(format.string(from:extractPoint.happend))
+                            if (extractPoint.subjective != nil) {
+                                Text(extractPoint.subjective! ? "アイコンデータ (主観)" : "IoTスイッチ (客観)").foregroundStyle(Color.secondary)
+                            } else {
+                                Text("手動入力").foregroundStyle(Color.secondary)
+                            }
+                            if (extractPoint.status == .success) {
                                 Text("抽出成功").foregroundStyle(Color.blue).bold()
-                            } else if (switchHistory.status == .failed) {
+                            } else if (extractPoint.status == .failed) {
                                 Text("抽出失敗").foregroundStyle(Color.red).bold()
                             }
                         }.swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button(role: .destructive) {
-                                delete(id: switchHistory.id)
+                                delete(id: extractPoint.id)
                             } label: {
                                 Image(systemName: "trash.fill")
                             }
@@ -128,12 +136,12 @@ struct VideoExtractView: View {
                 Button(role: .destructive){
                     deleteAll()
                 } label: {
-                    Label("すべての履歴を削除", systemImage: "trash").foregroundStyle(Color.red)
+                    Label("すべてのポイントを削除", systemImage: "trash").foregroundStyle(Color.red)
                 }
             }
         }
-        // Webからの履歴取得失敗時
-        .alert("履歴の取得に失敗しました。", isPresented: $showFetchFailedAlert) {}
+        // Webからのデータ取得失敗時
+        .alert("データの取得に失敗しました。", isPresented: $showFetchFailedAlert) {}
         // ツールバーに抽出ボタンを設置
         .toolbar{
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -143,12 +151,12 @@ struct VideoExtractView: View {
                     Image(systemName: "movieclapper")
                     Text("抽出")
                 }
-                .disabled(switchHistories.count == 0)
+                .disabled(extractPoints.count == 0)
             }
         }
         // 抽出処理画面への遷移
         .fullScreenCover(isPresented: $showVideoExtractProcessView) {
-            VideoExtractProcessView(parent: video, switchHistories: $switchHistories)
+            VideoExtractProcessView(parent: video, extractPoints: $extractPoints)
         }
         .navigationTitle("シーン動画の抽出")
         .navigationBarTitleDisplayMode(.inline)
@@ -157,11 +165,11 @@ struct VideoExtractView: View {
     private func fetch() async {
         self.fetching = true
         
-        let switchHistories: [SwitchHistory]? = await  SwitchHistory.fetch(url: self.url, start: self.video.recordedStart, end: self.video.recordedEnd)
+        let extractPoints: [ExtractPoint]? = await ExtractPoint.fetch(url: self.url, start: self.video.recordedStart, end: self.video.recordedEnd)
         
-        if let switchHistories = switchHistories {
-            for switchHistory in switchHistories {
-                self.switchHistories.append(.init(id: self.id, switchHistory: switchHistory))
+        if let extractPoints = extractPoints {
+            for extractPoint in extractPoints {
+                self.extractPoints.append(.init(id: self.id, extractPoint: extractPoint))
                 self.id += 1
             }
         } else {
@@ -174,17 +182,17 @@ struct VideoExtractView: View {
     private func add() {
         let secDiff: Int = self.second - Calendar.current.component(.second, from: self.date)
         let date: Date =  Calendar.current.date(byAdding: .second, value: secDiff, to: self.date)!
-        let switchHistory: SwitchHistory = .init(id: self.id, happend: date, subjective: self.subjective)
-        self.switchHistories.append(switchHistory)
+        let extractPoint: ExtractPoint = .init(id: self.id, happend: date, subjective: nil)
+        self.extractPoints.append(extractPoint)
         self.id += 1
     }
     
     private func delete(id: Int) {
-        self.switchHistories.removeAll{ $0.id == id }
+        self.extractPoints.removeAll{ $0.id == id }
     }
     
     private func deleteAll() {
-        self.switchHistories.removeAll()
+        self.extractPoints.removeAll()
     }
 }
 

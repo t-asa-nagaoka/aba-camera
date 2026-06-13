@@ -1,5 +1,5 @@
 //
-//  SwitchHistory.swift
+//  ExtractPoint.swift
 //  aba-camera
 //
 //  Created by shiolab_asakura on 2025/01/17.
@@ -7,37 +7,37 @@
 
 import Foundation
 
-enum SwitchHistoryExtractStatus: Int {
+enum ExtractStatus: Int {
     case none = 0
     case success = 1
     case failed = 2
 }
 
-struct SwitchHistory : SwitchHistoryProtocol {
+struct ExtractPoint : ExtractPointProtocol {
     var id: Int
     var happend: Date
-    var subjective: Bool
-    var status: SwitchHistoryExtractStatus
+    var subjective: Bool?
+    var status: ExtractStatus
     
-    init(id: Int, happend: Date, subjective: Bool) {
+    init(id: Int, happend: Date, subjective: Bool?) {
         self.id = id
         self.happend = happend
         self.subjective = subjective
         self.status = .none
     }
     
-    init(id: Int, switchHistory: SwitchHistoryProtocol) {
+    init(id: Int, extractPoint: ExtractPointProtocol) {
         self.id = id
-        self.happend = switchHistory.happend
-        self.subjective = switchHistory.subjective
+        self.happend = extractPoint.happend
+        self.subjective = extractPoint.subjective
         self.status = .none
     }
     
-    static func fetch(url: String, start: Date, end: Date) async -> [SwitchHistory]? {
+    static func fetch(url: String, start: Date, end: Date) async -> [ExtractPoint]? {
         let query: String = "?start=" + DateHelper.toISOString(date: start) + "&end=" + DateHelper.toISOString(date: end)
         
         guard let endpoint = URL(string: url + query) else {
-            print("-- SwitchHistory.fetch : URL Initialize Error --")
+            print("-- ExtractPoint.fetch : URL Initialize Error --")
             print("url: " + url + query)
             return nil
         }
@@ -48,15 +48,15 @@ struct SwitchHistory : SwitchHistoryProtocol {
         request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
         
         // リクエストの送信
-        guard let data = await SwitchHistory.sendRequest(request: request) else {
+        guard let data = await ExtractPoint.sendRequest(request: request) else {
             return nil
         }
         
         // JSONをパース
         do {
             let jsonDict = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) as! [String: Any]
-            let histories = jsonDict["switchHistories"] as! [[String: Any]]
-            var switchHistories: [SwitchHistory] = []
+            let histories = jsonDict["extractPoints"] as! [[String: Any]]
+            var extractPoints: [ExtractPoint] = []
             
             for history in histories {
                 let dateString = history["date"] as! String
@@ -66,14 +66,14 @@ struct SwitchHistory : SwitchHistoryProtocol {
                 //let subjective: Bool = subjectiveString.lowercased() == "true"
                 let subjective: Bool = history["subjective"] as! Bool
                 
-                let switchHistory: SwitchHistory = .init(id: 0, happend: date, subjective: subjective)
+                let extractPoint: ExtractPoint = .init(id: 0, happend: date, subjective: subjective)
                 
-                switchHistories.append(switchHistory)
+                extractPoints.append(extractPoint)
             }
             
-            return switchHistories
+            return extractPoints
         } catch {
-            print("-- SwitchHistory.fetch : JSON Parse Error --")
+            print("-- ExtractPoint.fetch : JSON Parse Error --")
             print("url: " + url + query)
             print(error)
             return nil
@@ -86,7 +86,7 @@ struct SwitchHistory : SwitchHistoryProtocol {
             
             if let response = response as? HTTPURLResponse {
                 if !(200...299).contains(response.statusCode) {
-                    print("-- SwitchHistory.sendRequest : Invalid Status --")
+                    print("-- ExtractPoint.sendRequest : Invalid Status --")
                     print("status: \(response.statusCode)")
                     return nil
                 }
@@ -94,7 +94,7 @@ struct SwitchHistory : SwitchHistoryProtocol {
             
             return data
         } catch {
-            print("-- SwitchHistory.sendRequest : Error --")
+            print("-- ExtractPoint.sendRequest : Error --")
             print("url: " + (request.url?.absoluteString ?? "nil"))
             print(error)
             return nil
