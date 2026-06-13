@@ -37,7 +37,7 @@ struct VideoListView: View {
         
         switch self.filterMode {
         case .all:
-            return "すべて"
+            return "すべての動画"
         case .recordedOnly:
             return "撮影動画一覧"
         case .sceneOnly:
@@ -125,18 +125,27 @@ struct VideoListView: View {
                             Text(format.string(from: video.recordedStart)).font(.subheadline).foregroundStyle(Color.secondary).bold()
                         }
                     }.swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button {
+                        Button(role: .destructive) {
                             deletingVideo = video
                             showDeleteConfirmAlert = true
                         } label: {
                             Image(systemName: "trash.fill")
-                        }.tint(.red)
+                            Text("削除")
+                        }
                     }
                 }
             }
-            // 追加(デバッグ用)・削除のボタン
+            // 削除ボタン
             Section {
-                #if DEBUG
+                Button(role: .destructive) {
+                    showDeleteAllConfirmAlert = true
+                } label: {
+                    Label("すべての動画を削除", systemImage: "trash").foregroundStyle(Color.red)
+                }
+            }
+            // 追加(デバッグ用)ボタン
+            #if DEBUG
+            Section {
                 if (filterMode != .sceneOnly) {
                     Button {
                         addEmpty(isScene: false)
@@ -151,13 +160,8 @@ struct VideoListView: View {
                         Label("空のシーン動画を追加 (デバッグ用)", systemImage: "plus")
                     }
                 }
-                #endif
-                Button(role: .destructive) {
-                    showDeleteAllConfirmAlert = true
-                } label: {
-                    Label("すべての動画を削除", systemImage: "trash").foregroundStyle(Color.red)
-                }
             }
+            #endif
         }
         // 動画削除前の確認アラート
         .alert("動画を削除しますか?", isPresented: $showDeleteConfirmAlert) {
@@ -201,7 +205,7 @@ struct VideoListView: View {
             // タイトル部分をメニューボタンにする
             ToolbarTitleMenu {
                 if (parentId == nil) {
-                    Button("すべて") {
+                    Button("すべての動画") {
                         filterMode = .all
                     }
                     Button("撮影動画一覧") {
@@ -218,8 +222,11 @@ struct VideoListView: View {
             CameraView(id: generateId())
         }
         // 設定画面への遷移
-        .navigationDestination(isPresented: $showAppSettingsView) {
-            AppSettingsView()
+        .sheet(isPresented: $showAppSettingsView) {
+            NavigationStack{
+                AppSettingsView()
+            }
+            .interactiveDismissDisabled()
         }
         // 画面上部のタイトル
         .navigationTitle(viewTitle)

@@ -76,8 +76,13 @@ struct VideoExtractProcessView: View {
             // 正常に抽出できた場合のみレコード追加
             let result: Video? = await self.parent.extract(id: id, extractPoint: extractPoint, before: self.before, after: self.after)
             if let video = result {
-                // タイトルを元の動画と同一にする
-                video.title = self.parent.title
+                // タイトルの生成
+                let format: DateFormatter = .init()
+                format.dateFormat = "yyyy年MM月dd日 HH時mm分ss秒"
+                video.title = format.string(from: video.recordedStart)
+                
+                // ファイル名をタイトルに合わせる
+                _ = video.rename(fileName: video.title)
                 
                 // レコード追加
                 self.context.insert(video)

@@ -63,7 +63,7 @@ struct CameraView: View {
         if let video = result {
             // タイトルの生成
             let format: DateFormatter = .init()
-            format.dateFormat = "yyyy.MM.dd"
+            format.dateFormat = "yyyy年MM月dd日 HH時mm分ss秒"
             video.title = format.string(from: video.recordedStart)
             
             // ファイル名をタイトルに合わせる

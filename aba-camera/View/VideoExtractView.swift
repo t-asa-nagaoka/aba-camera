@@ -81,6 +81,31 @@ struct VideoExtractView: View {
                     Label("抽出ポイントを追加", systemImage: "plus")
                 }.disabled(fetching)
             }
+            // 抽出ポイントの一覧
+            Section (header: Text("抽出ポイント").font(.body)) {
+                ForEach(extractPoints, id: \.id) { extractPoint in
+                    VStack(alignment: .leading) {
+                        Text(format.string(from:extractPoint.happend))
+                        if (extractPoint.subjective != nil) {
+                            Text(extractPoint.subjective! ? "アイコンデータ (主観)" : "IoTスイッチ (客観)").foregroundStyle(Color.secondary)
+                        } else {
+                            Text("手動入力").foregroundStyle(Color.secondary)
+                        }
+                        if (extractPoint.status == .success) {
+                            Text("抽出成功").foregroundStyle(Color.blue).bold()
+                        } else if (extractPoint.status == .failed) {
+                            Text("抽出失敗").foregroundStyle(Color.red).bold()
+                        }
+                    }.swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            delete(id: extractPoint.id)
+                        } label: {
+                            Image(systemName: "trash.fill")
+                            Text("削除")
+                        }
+                    }
+                }
+            }
             // 元の動画の情報
             Section (header: Text("元の動画").font(.body)) {
                 HStack {
@@ -105,33 +130,7 @@ struct VideoExtractView: View {
                     Text("秒後")
                 }
             }
-            // 抽出ポイントの一覧
-            if (extractPoints.count > 0) {
-                Section (header: Text("抽出ポイント").font(.body)) {
-                    ForEach(extractPoints, id: \.id) { extractPoint in
-                        VStack(alignment: .leading) {
-                            Text(format.string(from:extractPoint.happend))
-                            if (extractPoint.subjective != nil) {
-                                Text(extractPoint.subjective! ? "アイコンデータ (主観)" : "IoTスイッチ (客観)").foregroundStyle(Color.secondary)
-                            } else {
-                                Text("手動入力").foregroundStyle(Color.secondary)
-                            }
-                            if (extractPoint.status == .success) {
-                                Text("抽出成功").foregroundStyle(Color.blue).bold()
-                            } else if (extractPoint.status == .failed) {
-                                Text("抽出失敗").foregroundStyle(Color.red).bold()
-                            }
-                        }.swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                delete(id: extractPoint.id)
-                            } label: {
-                                Image(systemName: "trash.fill")
-                            }
-                        }
-                    }
-                }
-            }
-            // 抽出ポイントの一覧
+            // 抽出ポイントの削除
             Section {
                 Button(role: .destructive){
                     deleteAll()
@@ -144,14 +143,26 @@ struct VideoExtractView: View {
         .alert("データの取得に失敗しました。", isPresented: $showFetchFailedAlert) {}
         // ツールバーに抽出ボタンを設置
         .toolbar{
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showVideoExtractProcessView = true
-                } label: {
-                    Image(systemName: "movieclapper")
-                    Text("抽出")
+            if #available(iOS 26.0, *) {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(role: .confirm) {
+                        showVideoExtractProcessView = true
+                    } label: {
+                        Image(systemName: "movieclapper")
+                        Text("抽出").bold()
+                    }
+                    .disabled(extractPoints.count == 0)
                 }
-                .disabled(extractPoints.count == 0)
+            } else {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showVideoExtractProcessView = true
+                    } label: {
+                        Image(systemName: "movieclapper")
+                        Text("抽出").bold()
+                    }
+                    .disabled(extractPoints.count == 0)
+                }
             }
         }
         // 抽出処理画面への遷移

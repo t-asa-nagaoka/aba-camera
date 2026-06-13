@@ -9,48 +9,65 @@ import SwiftUI
 
 struct AppSettingsView: View {
     
+    @Environment(\.dismiss) var dismiss
     @AppStorage("apiUrl") var apiUrl: String = ""
     @AppStorage("videoHighQuality") var videoHighQuality: Bool = false
     @AppStorage("beforeSeconds") var beforeSeconds: Int = 20
     @AppStorage("afterSeconds") var afterSeconds: Int = 60
+    @State private var apiUrlInput: String
+    @State private var videoHighQualityInput: Bool
+    @State private var beforeSecondsInput: Int
+    @State private var afterSecondsInput: Int
     @State private var showDeleteConfirmAlert: Bool
     @State private var showDeleteFilesSuccessAlert: Bool
     @State private var showDeleteFilesFailedAlert : Bool
     
     init() {
-        showDeleteConfirmAlert = false
-        showDeleteFilesSuccessAlert = false
-        showDeleteFilesFailedAlert = false
+        self.apiUrlInput = ""
+        self.videoHighQualityInput = false
+        self.beforeSecondsInput = 20
+        self.afterSecondsInput = 60
+        self.showDeleteConfirmAlert = false
+        self.showDeleteFilesSuccessAlert = false
+        self.showDeleteFilesFailedAlert = false
     }
     
     var body: some View {
         Form{
             Section (header: Text("APIの基点URL").font(.body), footer: Text("心拍データ取得システム (Webシステム) に登録したアクセス権限の「外部APIの基点URL」 を入力します。").font(.body)) {
-                TextField("URLを入力", text: $apiUrl)
+                TextField("URLを入力", text: $apiUrlInput)
                     .textInputAutocapitalization(.never)
                     //.disableAutocorrection(true)
                     .keyboardType(.URL)
             }
             Section (header: Text("撮影設定").font(.body)) {
-                Toggle("高画質撮影", isOn: $videoHighQuality)
+                Toggle("高画質撮影", isOn: $videoHighQualityInput)
             }
             Section (header: Text("IoTスイッチ作動前後の抽出時間 (秒)").font(.body)) {
                 HStack {
                     Text("前: ").foregroundStyle(Color.secondary)
-                    TextField("秒数を入力", value: $beforeSeconds, format: .number)
+                    TextField("秒数を入力", value: $beforeSecondsInput, format: .number)
                         .keyboardType(.numberPad)
                 }
                 HStack {
                     Text("後: ").foregroundStyle(Color.secondary)
-                    TextField("秒数を入力", value: $afterSeconds, format: .number)
+                    TextField("秒数を入力", value: $afterSecondsInput, format: .number)
                         .keyboardType(.numberPad)
                 }
             }
             Section (header: Text("ストレージ").font(.body)) {
-                Button("すべての一時ファイルを削除", role: .destructive){
+                Button(role: .destructive) {
                     showDeleteConfirmAlert = true
+                } label: {
+                    Label("すべての一時ファイルを削除", systemImage: "trash").foregroundStyle(Color.red)
                 }
             }
+        }
+        .onAppear {
+            apiUrlInput = apiUrl
+            videoHighQualityInput = videoHighQuality
+            beforeSecondsInput = beforeSeconds
+            afterSecondsInput = afterSeconds
         }
         // 一時ファイル削除前の確認アラート
         .alert("すべての一時ファイルを削除しますか?", isPresented: $showDeleteConfirmAlert) {
@@ -64,6 +81,55 @@ struct AppSettingsView: View {
         .alert("すべての一時ファイルを削除しました。", isPresented: $showDeleteFilesSuccessAlert) {}
         // 一時ファイル削除失敗時のアラート
         .alert("一部またはすべての一時ファイルを削除できませんでした。", isPresented: $showDeleteFilesFailedAlert) {}
+        // ツールバーにボタンを設置
+        .toolbar{
+            if #available(iOS 26.0, *) {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(role: .close) {
+                        dismiss()
+                    } label: {
+                        Text("キャンセル")
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(role: .confirm) {
+                        // 変更を反映
+                        apiUrl = apiUrlInput
+                        videoHighQuality = videoHighQualityInput
+                        beforeSeconds = beforeSecondsInput
+                        afterSeconds = afterSecondsInput
+                        
+                        dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
+                        Text("完了").bold()
+                    }
+                }
+            } else {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(role: .cancel) {
+                        dismiss()
+                    } label: {
+                        Text("キャンセル")
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        // 変更を反映
+                        apiUrl = apiUrlInput
+                        videoHighQuality = videoHighQualityInput
+                        beforeSeconds = beforeSecondsInput
+                        afterSeconds = afterSecondsInput
+                        
+                        dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
+                        Text("完了").bold()
+                    }
+                }
+            }
+        }
+        .navigationBarBackButtonHidden()
         .navigationTitle("設定")
         .navigationBarTitleDisplayMode(.inline)
     }

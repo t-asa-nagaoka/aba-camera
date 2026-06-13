@@ -19,6 +19,7 @@ struct VideoDetailsView: View {
     @State private var fileUrl: URL
     @State private var edited: Bool
     @State private var showVideoExtractView: Bool
+    @State private var showVideoListView: Bool
     @State private var showVideoPlayerView: Bool
     @State private var showVideoInfoEditView: Bool
     @State private var showDeleteConfirmAlert: Bool
@@ -37,6 +38,7 @@ struct VideoDetailsView: View {
         self.fileUrl = video.fileUrl
         self.edited = false
         self.showVideoExtractView = false
+        self.showVideoListView = false
         self.showVideoPlayerView = false
         self.showVideoInfoEditView = false
         self.showDeleteConfirmAlert = false
@@ -63,25 +65,42 @@ struct VideoDetailsView: View {
             Section (header: Text("タイトル").font(.body)) {
                 Text(title).font(.title3).bold()
             }
-            if (memo != "") {
-                Section (header: Text("メモ").font(.body)) {
-                    Text(memo)
+            Section (header: Text("メモ").font(.body)) {
+                Text(memo)
+            }
+            // 各種操作のボタン
+            Section {
+                if (!video.isScene && fileExists) {
+                    Button {
+                        showVideoExtractView = true
+                    } label: {
+                        Label {
+                            Text("シーン動画を抽出").bold()
+                        } icon: {
+                            Image(systemName: "movieclapper")
+                        }
+                    }
+                    Button {
+                        showVideoListView = true
+                    } label: {
+                        Label {
+                            Text("抽出したシーン動画を見る").bold()
+                        } icon: {
+                            Image(systemName: "list.triangle")
+                        }
+                    }
+                }
+                Button {
+                    showVideoInfoEditView = true
+                } label: {
+                    Label("タイトルとメモを編集", systemImage:"pencil.line")
+                }
+                if (fileExists) {
+                    ShareLink("他のアプリに送信・保存", item: fileUrl)
                 }
             }
-            // 動画ID (デバッグのみ)
-            #if DEBUG
-            Section (header: Text("動画ID (デバッグ用)").font(.body)) {
-                Text(video.id.uuidString)
-            }
-            if (video.parentId != nil) {
-                Section (header: Text("親動画ID (デバッグ用)").font(.body)) {
-                    Text(video.parentId!.uuidString)
-                }
-            }
-            #endif
-            // 撮影動画とシーン動画で表示を分ける
+            // 抽出ポイント情報 (シーン動画のみ)
             if (video.isScene) {
-                // 抽出ポイント情報 (シーン動画のみ)
                 Section (header: Text("抽出ポイント情報").font(.body)) {
                     HStack {
                         Text("基点日時")
@@ -96,13 +115,6 @@ struct VideoDetailsView: View {
                         } else {
                             Text("手動入力").foregroundStyle(Color.secondary)
                         }
-                    }
-                }
-            } else {
-                // シーン動画一覧へのリンク (撮影動画のみ)
-                Section {
-                    NavigationLink(destination: VideoListView(parentId: video.id)) {
-                        Text("抽出したシーン動画")
                     }
                 }
             }
@@ -124,28 +136,6 @@ struct VideoDetailsView: View {
                     Text(format.string(from:video.created)).foregroundStyle(Color.secondary)
                 }
             }
-            // 各種操作のボタン
-            Section {
-                if (!video.isScene && fileExists) {
-                    Button {
-                        showVideoExtractView = true
-                    } label: {
-                        Label {
-                            Text("シーン動画の抽出").bold()
-                        } icon: {
-                            Image(systemName: "movieclapper")
-                        }
-                    }
-                }
-                Button {
-                    showVideoInfoEditView = true
-                } label: {
-                    Label("タイトルとメモを編集", systemImage:"pencil.line")
-                }
-                if (fileExists) {
-                    ShareLink("他のアプリに送信・保存", item: fileUrl)
-                }
-            }
             // 削除ボタン
             Section {
                 Button(role: .destructive){
@@ -154,6 +144,17 @@ struct VideoDetailsView: View {
                     Label("この動画を削除", systemImage: "trash").foregroundStyle(Color.red)
                 }
             }
+            // 動画ID (デバッグのみ)
+            #if DEBUG
+            Section (header: Text("動画ID (デバッグ用)").font(.body)) {
+                Text(video.id.uuidString)
+            }
+            if (video.parentId != nil) {
+                Section (header: Text("親動画ID (デバッグ用)").font(.body)) {
+                    Text(video.parentId!.uuidString)
+                }
+            }
+            #endif
         }
         // 動画削除前の確認アラート
         .alert("動画を削除しますか?", isPresented: $showDeleteConfirmAlert) {
@@ -187,6 +188,10 @@ struct VideoDetailsView: View {
         // 抽出画面への遷移
         .navigationDestination(isPresented: $showVideoExtractView) {
             VideoExtractView(video: video)
+        }
+        // シーン動画一覧画面への遷移
+        .navigationDestination(isPresented: $showVideoListView) {
+            VideoListView(parentId: video.id)
         }
         // 再生画面への遷移
         .fullScreenCover(isPresented: $showVideoPlayerView) {
