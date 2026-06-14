@@ -219,7 +219,7 @@ struct VideoListView: View {
         }
         // カメラ画面への遷移
         .fullScreenCover(isPresented: $showCameraView) {
-            CameraView(id: generateId())
+            CameraView()
         }
         // 設定画面への遷移
         .sheet(isPresented: $showAppSettingsView) {
@@ -237,7 +237,7 @@ struct VideoListView: View {
     #if DEBUG
     private func addEmpty(isScene: Bool) {
         let format: DateFormatter = .init()
-        format.dateFormat = "yyyy.MM.dd"
+        format.dateFormat = "yyyy年MM月dd日 HH時mm分ss秒"
         
         let video: Video = .init(id: generateId())
         video.title = format.string(from: video.recordedStart)

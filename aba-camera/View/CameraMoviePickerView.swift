@@ -38,11 +38,11 @@ struct CameraMoviePickerView: UIViewControllerRepresentable {
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
 
             guard let videoUrl = info[.mediaURL] as? URL else {
+                parent.dismiss()
                 return
             }
 
             parent.videoUrl = videoUrl
-            parent.dismiss()
         }
 
         func imagePickerControllerDidCancel(_: UIImagePickerController) {

@@ -140,7 +140,7 @@ struct VideoExtractView: View {
             }
         }
         // Webからのデータ取得失敗時
-        .alert("データの取得に失敗しました。", isPresented: $showFetchFailedAlert) {}
+        .alert("Webからのデータ取得に失敗しました。", isPresented: $showFetchFailedAlert) {}
         // ツールバーに抽出ボタンを設置
         .toolbar{
             if #available(iOS 26.0, *) {
@@ -173,6 +173,7 @@ struct VideoExtractView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
     
+    // Webシステムからのデータ取得
     private func fetch(subjective: Bool) async {
         self.fetching = true
         
