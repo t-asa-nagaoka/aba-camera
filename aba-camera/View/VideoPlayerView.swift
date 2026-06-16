@@ -37,6 +37,11 @@ struct VideoPlayerView: View {
             }
         }
         .onAppear {
+            // マナーモードでも音を鳴らすように設定
+            // https://qiita.com/pandapanda/items/1c87fa0115a8bcba51a6
+            let audioSession = AVAudioSession.sharedInstance()
+            try! audioSession.setCategory(.playback)
+            
             player = AVPlayer(url: videoUrl)
         }
         .statusBarHidden()
